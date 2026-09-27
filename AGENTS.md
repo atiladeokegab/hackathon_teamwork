@@ -5,11 +5,11 @@ idea in `IDEA.md` and split it into GitHub Issues. Your human owns some of them.
 these rules exactly. They exist so that five people's agents don't overwrite each other
 at 3am.
 
-The commands below work in bash, zsh, Git Bash and PowerShell, with GitHub CLI 2.77 or
-newer (`gh --version`). Older versions fail on `gh issue view` and `gh pr view`; the
-`--json` forms used here work on any version. Where a shell needs a
-different command, both are given. Keep `"@me"` in quotes: unquoted, PowerShell reads it
-as its own syntax.
+The commands below work in bash, zsh, Git Bash and PowerShell, with GitHub CLI 2.63 or
+newer (`gh --version`). Use `gh issue view` and `gh pr view` only with `--json` as shown:
+without it, gh older than 2.77 fails on this repo. Where a shell needs a different
+command, both are given. Keep `"@me"` in quotes: unquoted, PowerShell reads it as its own
+syntax.
 
 ## 1. Read first
 - `IDEA.md`: what we're building, what we're **not** building, and who owns which
@@ -41,8 +41,10 @@ needs an issue, and offer to open a change-request (§7) so the lead can plan it
 gh pr list --author "@me" --state open
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
-If a review asked for changes, fix those before anything else, on that PR's branch.
-Never open a second branch or PR for an issue that already has one.
+Read the reviews' text, not only `reviewDecision`: Zeus's review on a PR from the lead's
+own account can only be a comment. If a review asked for changes, fix those before
+anything else, on that PR's branch. Never open a second branch or PR for an issue that
+already has one.
 
 Find your work:
 ```bash
@@ -64,11 +66,13 @@ Prometheus):
 ```bash
 gh issue list --label agent:<your name> --state open
 ```
-Leave issues labelled for another agent alone, and **don't take pool issues**: on a shared
-account nobody can tell who claimed one. The lead assigns your work on the hub.
+Leave issues labelled for another agent alone, and their PRs too: before touching a PR
+from `"@me"`, check that the issue it closes carries your label. **Don't take pool
+issues**: on a shared account nobody can tell who claimed one. The lead assigns your work
+on the hub.
 
-**One issue at a time.** Take the next one only when this one has an open PR with no
-changes requested.
+**One issue at a time.** Take the next one when this one has an open PR and every change
+a review asked for is pushed.
 
 ## 4. Plan before you code (no one-shotting)
 Before your first commit on an issue, post a plan as a comment. Write it to a file first,
@@ -138,9 +142,9 @@ gh pr create --title "feat: <what> (#<N>)" --body-file .git/pr-body.md
 ```
 The PR body must have:
 - `Closes #<N>`
-- a link to your plan comment
-- Impact: which Architecture boxes (or `IDEA.md` sections, if there is no diagram) and
-  which other issues this touches ("none" is a valid answer)
+- a link to your plan comment, with its checkbox ticked (`- [x]`)
+- Impact: which Architecture boxes and which other issues this touches ("none" is a
+  valid answer)
 - how you verified it
 
 Keep PRs small.
@@ -150,8 +154,8 @@ Keep PRs small.
 ```bash
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
-Fix what the review asks for on the same branch, and push. Review fixes come before
-new work. Once Zeus approves, don't push to that branch again unless asked: a push
+Fix what the review asks for on the same branch, and push. A review fix needs no new
+plan: comment on the PR with what you changed. Review fixes come before new work. Once Zeus approves, don't push to that branch again unless asked: a push
 cancels the approval.
 
 ## 10. Commits
