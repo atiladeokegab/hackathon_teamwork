@@ -52,8 +52,9 @@ gh issue list --search "is:open label:pool no:assignee"
 gh issue edit <N> --add-assignee "@me"
 gh issue view <N> --json assignees       # did someone grab it at the same moment?
 ```
-If anyone else is also assigned, remove yourself (`gh issue edit <N> --remove-assignee "@me"`)
-and pick another.
+If more than one person is assigned, the login that comes **first alphabetically** keeps
+it. Everyone else removes themselves (`gh issue edit <N> --remove-assignee "@me"`) and
+picks another.
 
 If your human is the lead, you share their GitHub account, so `"@me"` also lists the other
 agents' issues and PRs. Yours are the ones labelled with your name:
