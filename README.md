@@ -4,7 +4,9 @@
 
 ## Before you start
 
-- **git** and the **GitHub CLI 2.63 or newer** (`gh --version`), logged in: `gh auth login`.
+- **git** and the **GitHub CLI 2.63 or newer** (`gh --version`), logged in with
+  `gh auth login` in the browser. Don't use a fine-grained token (`github_pat_…`): it
+  can't accept the invite or push to a repo you don't own.
 - **Accept the invite** to this repo from your email or github.com/notifications. Until
   you do, your issues can't be assigned to you.
 - **Never commit API keys.** This repo is public: keys go in `.env` (ignored), and are
