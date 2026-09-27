@@ -8,7 +8,8 @@
 2. Open your AI tool (Claude Code, Codex, Cursor, Copilot…) in the folder.
 3. Tell it: *"Read AGENTS.md, then pick up my issue."*
 
-Deadlines, rules and the team are in [HACKATHON.md](HACKATHON.md).
+What we're building and who owns which part: [IDEA.md](IDEA.md). Deadlines, rules and
+the team: [HACKATHON.md](HACKATHON.md).
 
 ## How this workflow works
 

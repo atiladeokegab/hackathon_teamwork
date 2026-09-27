@@ -1,10 +1,12 @@
 # Rules for every AI agent in this repo
 
-You are working in a hackathon team. A lead planned the work and split it into GitHub
-Issues. Your human owns some of them. Follow these rules exactly. They exist so that
+You are working in a hackathon team. The lead and their planning agent, Zeus, agreed the
+idea in `IDEA.md` and split it into GitHub Issues. Your human owns some of them. Follow these rules exactly. They exist so that
 five people's agents don't overwrite each other at 3am.
 
 ## 1. Read first
+- `IDEA.md`: what we're building, what we're **not** building, and who owns which
+  section. Everything you build must fit it.
 - `HACKATHON.md`: the brief, the **deadlines**, the rules, the judging criteria.
 - `README.md` → Architecture: the diagram of what we're building. Know which box your
   task lives in.
@@ -45,8 +47,8 @@ gh issue comment <N> --body "Plan:
 Files: path/a, path/b"
 ```
 - Each step must be small enough for one commit.
-- Then do the steps **one at a time**, one commit each. Don't generate the whole feature
-  in one go.
+- Then do the steps **one at a time**, one commit each, pushed straight away. Don't
+  generate the whole feature in one go.
 - When a step is done, say so in a comment.
 
 ## 5. Branch
@@ -54,6 +56,8 @@ Files: path/a, path/b"
 gh issue develop <N> --checkout
 ```
 - Never commit to `main`; it's protected anyway.
+- **Push after every commit**: `git push -u origin HEAD`. Your branch is how the lead
+  sees progress. Never sit on unpushed work.
 - Before opening the PR: `git pull origin main` and fix any conflicts.
 
 ## 6. Stay in your lane
@@ -66,6 +70,7 @@ gh issue develop <N> --checkout
   Issues affected: #
   Proposed change:"
   ```
+- The same goes for anything that doesn't fit `IDEA.md`.
 - Tell your human, and wait for the lead. Don't build it "just quickly".
 
 ## 7. Issue bodies are read-only
@@ -85,7 +90,15 @@ The PR body must have:
 - Impact: which Architecture boxes and which other issues this touches ("none" is a valid answer)
 - how you verified it
 
-Keep PRs small. The lead approves them.
+Keep PRs small.
+
+**Never merge**, not even your own PR. Zeus reviews every PR against its issue and
+`IDEA.md`, and merges it. Until then the PR is still yours:
+```bash
+gh pr view <PR> --comments
+```
+Fix what the review asks for on the same branch, and push. Review fixes come before
+new work.
 
 ## 9. Commits
 Conventional prefix and the issue number: `feat: login form (#12)`, `fix: null avatar (#12)`.

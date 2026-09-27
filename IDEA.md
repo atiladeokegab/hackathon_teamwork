@@ -1,0 +1,30 @@
+# The idea
+
+Zeus writes this once the lead has agreed the idea, and no issue is created before it is
+complete. If your task doesn't fit this page, open a change-request (AGENTS.md §6).
+
+## Problem
+
+<Who has the problem, and what it costs them. Two or three sentences.>
+
+## The idea
+
+<What we build, in one paragraph.>
+
+## What we build
+
+- <feature>
+
+## What we don't build
+
+- <tempting thing we are deliberately leaving out>
+
+## The demo, in one line
+
+<What the judges see in 30 seconds.>
+
+## Sections and owners
+
+| Section | Owner | Issues |
+|---|---|---|
+| <section of the app> | @<handle> | #<n>, #<n> |
