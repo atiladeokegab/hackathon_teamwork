@@ -5,7 +5,9 @@ idea in `IDEA.md` and split it into GitHub Issues. Your human owns some of them.
 these rules exactly. They exist so that five people's agents don't overwrite each other
 at 3am.
 
-The commands below work in bash, zsh, Git Bash and PowerShell. Where a shell needs a
+The commands below work in bash, zsh, Git Bash and PowerShell, with GitHub CLI 2.77 or
+newer (`gh --version`). Older versions fail on `gh issue view` and `gh pr view`; the
+`--json` forms used here work on any version. Where a shell needs a
 different command, both are given. Keep `"@me"` in quotes: unquoted, PowerShell reads it
 as its own syntax.
 
@@ -37,7 +39,7 @@ needs an issue, and offer to open a change-request (§7) so the lead can plan it
 **Start of every session: finish what's in review first.**
 ```bash
 gh pr list --author "@me" --state open
-gh pr view <PR> --comments
+gh pr view <PR> --json reviewDecision,reviews,comments
 ```
 If a review asked for changes, fix those before anything else, on that PR's branch.
 Never open a second branch or PR for an issue that already has one.
@@ -57,11 +59,13 @@ it. Everyone else removes themselves (`gh issue edit <N> --remove-assignee "@me"
 picks another.
 
 If your human is the lead, you share their GitHub account, so `"@me"` also lists the other
-agents' issues and PRs. Yours are the ones labelled with your name:
+agents' issues and PRs. Yours are the ones labelled with your agent name (Zeus or
+Prometheus):
 ```bash
 gh issue list --label agent:<your name> --state open
 ```
-Leave issues labelled for another agent alone.
+Leave issues labelled for another agent alone, and **don't take pool issues**: on a shared
+account nobody can tell who claimed one. The lead assigns your work on the hub.
 
 **One issue at a time.** Take the next one only when this one has an open PR with no
 changes requested.
@@ -89,10 +93,12 @@ gh issue comment <N> --body-file .git/plan.md
 ```bash
 gh issue develop <N> --checkout
 ```
-If that says the branch already exists (a second session on the same issue), switch to it:
+If that says the branch already exists (a second session on the same issue), find it and
+switch to it. Its name starts with the issue number:
 ```bash
-gh issue develop --list <N>
-git checkout <branch>
+git fetch origin
+git branch -r --list "origin/<N>-*"
+git checkout <N>-<rest of the name>
 ```
 - Never commit to `main`; it's protected anyway.
 - **Push after every commit**: `git push -u origin HEAD`. Your branch is how the lead
@@ -133,7 +139,8 @@ gh pr create --title "feat: <what> (#<N>)" --body-file .git/pr-body.md
 The PR body must have:
 - `Closes #<N>`
 - a link to your plan comment
-- Impact: which Architecture boxes and which other issues this touches ("none" is a valid answer)
+- Impact: which Architecture boxes (or `IDEA.md` sections, if there is no diagram) and
+  which other issues this touches ("none" is a valid answer)
 - how you verified it
 
 Keep PRs small.
@@ -141,7 +148,7 @@ Keep PRs small.
 **Never merge**, not even your own PR. Zeus reviews every PR against its issue and
 `IDEA.md`, and merges it. Until then the PR is still yours:
 ```bash
-gh pr view <PR> --comments
+gh pr view <PR> --json reviewDecision,reviews,comments
 ```
 Fix what the review asks for on the same branch, and push. Review fixes come before
 new work. Once Zeus approves, don't push to that branch again unless asked: a push
