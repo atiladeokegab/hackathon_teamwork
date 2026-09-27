@@ -2,6 +2,17 @@
 
 <One paragraph: what we're building and who it's for.>
 
+What we're building and who owns which part: [IDEA.md](IDEA.md). Deadlines, rules and
+the team: [HACKATHON.md](HACKATHON.md).
+
+## Quick start
+
+1. `gh repo clone <this repo>`
+2. Open your AI tool (Claude Code, Codex, Cursor, Copilot…) in the folder.
+3. Tell it: *"Read AGENTS.md, then pick up my issue."*
+
+New to this? Read the rest of this page once. It takes ten minutes and saves hours.
+
 ## Before you start
 
 - **git** and the **GitHub CLI 2.63 or newer** (`gh --version`), logged in with
@@ -12,23 +23,194 @@
 - **Never commit API keys.** This repo is public: keys go in `.env` (ignored), and are
   shared with the team outside GitHub.
 
-## Quick start for teammates
+---
 
-1. `gh repo clone <this repo>`
-2. Open your AI tool (Claude Code, Codex, Cursor, Copilot…) in the folder.
-3. Tell it: *"Read AGENTS.md, then pick up my issue."*
+## How this works
 
-What we're building and who owns which part: [IDEA.md](IDEA.md). Deadlines, rules and
-the team: [HACKATHON.md](HACKATHON.md).
+The lead plans the whole project first, on their own PC, with their planning agent Zeus.
+Only then is the work split into small tasks, and each task becomes an Issue in this
+repo. You and your AI agent pick up your issues one at a time. Nobody builds the whole
+thing in one prompt.
 
-## How this workflow works
+```mermaid
+flowchart TB
+    subgraph LEAD["On the lead's PC"]
+        A["1 · Paste the event brief"] --> B["2 · Pull out every deadline"]
+        B --> C["3 · Plan the idea: brainstorm, challenge it, draw it"]
+        C --> D["4 · Split it into small tasks and pick owners"]
+        D --> E["5 · Approve IDEA.md: what we build and who owns what"]
+    end
+    subgraph GH["On GitHub: this repo"]
+        F["6 · Every task becomes an Issue"]
+        R{"10 · Zeus reviews"}
+        M["11 · PR merged, issue closed"]
+    end
+    subgraph YOU["On your machine"]
+        G["7 · Your agent picks up your issue"] --> H["8 · Plan comment, branch, small commits"]
+        H --> I["9 · Pull request"]
+    end
+    E --> F --> G
+    I --> R
+    R -- "changes needed" --> H
+    R -- "approved" --> M
+    M --> N["The lead's board updates by itself"]
+```
 
-![How it works](docs/how-it-works.png)
+## Who does what
 
-1. The lead plans the project on their PC and splits it into tasks.
-2. Each task appears here as a GitHub Issue, assigned to you or labelled `pool`.
-3. Your AI agent follows [AGENTS.md](AGENTS.md): plan first, one branch per issue, stay in
-   your files, and raise a change-request for anything bigger.
+```mermaid
+flowchart LR
+    LEAD(["Lead"]) -- "approves the plan and every merge" --> ZEUS["Zeus: the lead's planning agent"]
+    ZEUS -- "writes the issues" --> REPO[("This repo")]
+    ZEUS -- "reviews and merges PRs" --> REPO
+    PRO["Prometheus: the lead's builder agent"] -- "builds assigned issues" --> REPO
+    YOU(["You"]) -- "drive" --> AGENT["Your AI agent"]
+    AGENT -- "reads AGENTS.md, opens PRs" --> REPO
+```
+
+| Who | Does | Never does |
+|---|---|---|
+| **Lead** | Agrees the idea, approves the plan, the owners and every merge | — |
+| **Zeus** (lead's agent) | Plans, writes every issue, reviews every PR, merges | Builds a teammate's section |
+| **Prometheus** (lead's agent) | Builds the issues assigned to it | Takes pool issues |
+| **You** | Own your section; tell your agent what to pick up; check its work | Merge; edit someone else's files |
+| **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges; builds anything that has no issue |
+
+## Your first hour
+
+```mermaid
+flowchart TB
+    A["Invite email arrives"] --> B["Accept it on github.com"]
+    B --> C["Install git and the GitHub CLI"]
+    C --> D["gh auth login, in the browser"]
+    D --> E["gh repo clone this repo"]
+    E --> F["Open your AI tool in the folder"]
+    F --> G["Say: Read AGENTS.md, then pick up my issue"]
+    G --> H{"Your agent checks"}
+    H -- "a PR of yours has review comments" --> I["Fix those first"]
+    H -- "you have an assigned issue" --> J["Take it"]
+    H -- "nothing assigned" --> K["Take one from the pool"]
+    I --> L["Plan comment on the issue"]
+    J --> L
+    K --> L
+    L --> M["Branch, then one small commit per step, pushed each time"]
+    M --> N["Open a PR and wait for Zeus's review"]
+```
+
+Your job while the agent works: read its plan comment before it starts, and glance at
+each commit. If the plan looks wrong, say so on the issue. That is cheaper than a wrong PR.
+
+## Life of an issue
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pool: no owner yet
+    [*] --> Assigned: owner chosen in planning
+    Pool --> Assigned: someone takes it
+    Assigned --> Planned: plan comment posted
+    Planned --> Building: branch and commits
+    Building --> Blocked: needs more than its files
+    Blocked --> Building: lead re-plans
+    Building --> InReview: PR opened
+    InReview --> Building: changes requested
+    InReview --> Approved: Zeus approves
+    Approved --> InReview: a new push cancels the approval
+    Approved --> Done: Zeus merges
+    Done --> [*]
+```
+
+- **Pool** issues are unowned. Whoever finishes early takes one (AGENTS.md §3).
+- **Blocked** means your agent opened a **change-request** instead of touching a file
+  outside the issue. The lead re-plans, the issue text changes, and you get a
+  "Brief updated by the lead" comment.
+
+## The PR and review loop
+
+```mermaid
+sequenceDiagram
+    actor You
+    participant Agent as Your agent
+    participant GH as GitHub
+    participant Zeus
+    You->>Agent: Read AGENTS.md, then pick up my issue
+    Agent->>GH: Plan comment on the issue
+    loop one step at a time
+        Agent->>GH: Commit and push to your branch
+    end
+    Agent->>GH: Open the PR, which says Closes the issue
+    Zeus->>GH: Review against the issue and IDEA.md
+    alt changes needed
+        GH-->>Agent: Review comments
+        Agent->>GH: Push the fix
+        Zeus->>GH: Review again
+    end
+    Zeus->>GH: Approve
+    Note over GH: Any push now cancels the approval
+    Zeus->>GH: Merge
+    GH-->>You: Issue closed, task done on the lead's board
+```
+
+GitHub enforces the important part. Nobody can push straight to `main`. A PR can't be
+merged until the lead has approved it. A push after approval cancels the approval, so
+what gets merged is exactly what was reviewed.
+
+## The rules in one table
+
+[AGENTS.md](AGENTS.md) is what your agent follows. This is the same thing, with the why.
+
+| Rule | Why |
+|---|---|
+| Read `IDEA.md` and `HACKATHON.md` first | You build a part of one agreed idea, not your own version of it |
+| Check the clock in UTC every session | After code freeze, no new features; after submit, nothing at all |
+| Only work on issues | "Just build the whole frontend" is how five agents overwrite each other |
+| Review fixes first, every session | A PR waiting on you blocks everyone who depends on it |
+| One issue at a time | Small PRs get reviewed fast; big ones sit |
+| Post a plan before the first commit | Mistakes are cheapest to catch before any code exists |
+| One branch per issue (`gh issue develop 12 --checkout`) | Your work never lands on `main` unreviewed |
+| One small commit per step, pushed straight away | The lead can see progress, and nothing is lost if your laptop dies |
+| Touch only the files the issue lists | Two people editing one file lose each other's work |
+| Anything bigger: open a change-request | The lead re-plans it for everyone, instead of it surprising someone later |
+| Never edit an issue body; comment instead | The lead's board owns the text, and would overwrite your edit |
+| PR from the template: plan link ticked, Impact, how you checked | The reviewer knows what to look at in one glance |
+| Never merge; don't push after approval | Zeus merges; a push after approval cancels it |
+| Never commit secrets or agent files | The repo is public; a leaked key must be revoked, not just deleted |
+
+## Troubleshooting
+
+Every one of these happened for real while this kit was tested.
+
+| You see | Why | Fix |
+|---|---|---|
+| `HTTP 403`, "Resource not accessible by personal access token", or "Permission … denied" on push | You logged in with a fine-grained token (`github_pat_…`) | `gh auth login` again, in the browser |
+| `'you' not found` when your issue is assigned, or no issues assigned to you | You haven't accepted the repo invite yet | Accept it at github.com/notifications, then wait for the next sync (about 10 minutes) |
+| `gh issue list --assignee @me` ignores the filter (PowerShell) | PowerShell reads `@me` as its own syntax | Quote it: `"@me"` |
+| `fatal: Need to specify how to reconcile divergent branches` | Plain `git pull` refuses once your branch and `main` have both moved | `git pull --no-rebase origin main`, fix conflicts in your files, commit, push |
+| `GraphQL: Projects (classic) is being deprecated` | `gh issue view` / `gh pr view` without `--json`, on gh older than 2.77 | Use the `--json` form from AGENTS.md, or update gh |
+| `GH006: Protected branch update failed` | You pushed to `main` | Push to your issue's branch and open a PR |
+| "Waiting on code owner review" | The lead hasn't approved your PR yet (or a push cancelled the approval) | Nothing: wait for Zeus's review |
+| Your plan comment shows up garbled | Windows PowerShell's `>` wrote the file as UTF-16 | Write it with your editor, or `Set-Content -Encoding utf8` |
+| The pool search comes back empty right after the lead adds work | GitHub's search index lags a few seconds | Wait a minute and search again |
+| `gh issue develop` says the branch already exists | A second session on the same issue | `git fetch origin`, then `git branch -r --list "origin/12-*"`, then check that branch out |
+
+## Glossary
+
+| Word | Meaning here |
+|---|---|
+| **Issue** | One task, written by Zeus: context, the files you may touch, the approach, how to check it, its deadline |
+| **Pool** | Issues with no owner. Anyone who finishes early takes one |
+| **Branch** | Your own copy of the code for one issue. Named after it, like `12-add-login-form` |
+| **Commit** | One saved step of work, with a message like `feat: login form (#12)` |
+| **Push** | Sending your commits to GitHub so others can see them |
+| **Pull request (PR)** | Asking for your branch to be merged into `main` |
+| **Review** | Zeus reading your PR against the issue and `IDEA.md`, then approving it or asking for changes |
+| **Merge** | Your branch joining `main`. Only Zeus does this |
+| **`main`** | The shared, working version of the project. Protected: nobody pushes to it directly |
+| **CODEOWNERS** | The file that makes the lead's approval required on every PR |
+| **Milestone** | A deadline on GitHub: each issue belongs to `code freeze` or `submit` |
+| **Change-request** | An issue asking the lead to re-plan something outside your issue |
+| **Code freeze** | The time after which only fixes, demo and submission work are allowed |
+
+---
 
 ## Architecture
 
