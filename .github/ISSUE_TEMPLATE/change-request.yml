@@ -1,0 +1,21 @@
+name: Change request
+description: The task needs something outside its files. Stop and ask the lead.
+title: "change-request: "
+labels: [change-request]
+body:
+  - type: textarea
+    id: why
+    attributes: {label: What and why}
+    validations: {required: true}
+  - type: textarea
+    id: boxes
+    attributes: {label: C4 boxes affected, description: Which boxes in the README's Architecture diagram.}
+    validations: {required: true}
+  - type: textarea
+    id: issues
+    attributes: {label: Issues affected, placeholder: "#"}
+    validations: {required: true}
+  - type: textarea
+    id: proposal
+    attributes: {label: Proposed change}
+    validations: {required: true}

@@ -1,0 +1,25 @@
+name: Task
+description: One unit of work, planned by the lead.
+labels: [task]
+body:
+  - type: textarea
+    id: context
+    attributes: {label: Context}
+    validations: {required: true}
+  - type: textarea
+    id: files
+    attributes: {label: Files, description: The only files this task may touch.}
+    validations: {required: true}
+  - type: textarea
+    id: approach
+    attributes: {label: Approach}
+  - type: textarea
+    id: acceptance
+    attributes: {label: Acceptance}
+    validations: {required: true}
+  - type: textarea
+    id: verify
+    attributes: {label: Verify}
+  - type: input
+    id: deadline
+    attributes: {label: Deadline, placeholder: code freeze}
