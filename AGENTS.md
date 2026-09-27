@@ -88,7 +88,8 @@ comment arrives garbled. If you must use the shell there, use
 #   Files: path/a, path/b
 gh issue comment <N> --body-file .git/plan.md
 ```
-- Each step must be small enough for one commit.
+- Each step that changes files must be small enough for one commit. Checking your work
+  and opening the PR are steps too; they need no commit.
 - Then do the steps **one at a time**, one commit each, pushed straight away. Don't
   generate the whole feature in one go.
 - When a step is done, say so in a comment.
@@ -169,4 +170,5 @@ This repo is **public**. Anything pushed is readable by anyone, forever.
 - **Agent working files:** your plans, notes, transcripts and local settings. Your plan
   lives in the issue comment, not in the repo.
 - Before every commit, run `git status` and check that only files your issue lists
-  are staged.
+  are staged, and that `git config user.email` is your own address: commits are
+  credited to whoever that email belongs to.
