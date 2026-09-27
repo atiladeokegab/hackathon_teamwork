@@ -27,6 +27,13 @@ If that's empty, take one from the pool:
 gh issue list --search "is:open label:pool no:assignee"
 gh issue edit <N> --add-assignee @me
 ```
+If your human is the lead, you share their GitHub account, so `@me` also lists the other
+agents' issues. Yours are the ones labelled with your name:
+```bash
+gh issue list --label agent:<your name> --state open
+```
+Leave issues labelled for another agent alone.
+
 **One issue at a time.** Finish it (PR open) before taking the next.
 
 ## 4. Plan before you code (no one-shotting)
@@ -66,10 +73,13 @@ The lead's planning board owns each issue's text. **Never edit an issue body.** 
 instead. If you see "Brief updated by the lead", re-read the issue before you continue.
 
 ## 8. Pull request
+Copy the template, fill in every heading, then open the PR from that file
+(`--fill` skips the template, so don't use it):
 ```bash
-gh pr create --fill
+cp .github/pull_request_template.md /tmp/pr-body.md   # edit it
+gh pr create --title "feat: <what> (#<N>)" --body-file /tmp/pr-body.md
 ```
-The PR body (the template fills in the headings) must have:
+The PR body must have:
 - `Closes #<N>`
 - a link to your plan comment
 - Impact: which Architecture boxes and which other issues this touches ("none" is a valid answer)
