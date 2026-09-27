@@ -68,7 +68,10 @@ changes requested.
 
 ## 4. Plan before you code (no one-shotting)
 Before your first commit on an issue, post a plan as a comment. Write it to a file first,
-because multi-line text in a command line breaks in some shells:
+because multi-line text in a command line breaks in some shells. Create the file with your
+own file-editing tool. In Windows PowerShell don't use `>`: it writes UTF-16 and the
+comment arrives garbled. If you must use the shell there, use
+`Set-Content -Encoding utf8`. The same goes for every `.git/*.md` file below.
 ```bash
 # .git/plan.md, never committed:
 #   Plan:
