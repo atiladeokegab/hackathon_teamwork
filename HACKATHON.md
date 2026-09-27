@@ -6,12 +6,12 @@ Official rules: <link>
 
 ## Deadlines
 
-All times include their timezone. Your agent checks these every session.
+Your agent checks these every session against the UTC column.
 
-| Deadline | When |
-|---|---|
-| code freeze | <YYYY-MM-DDTHH:MM±HH:MM> |
-| submit | <YYYY-MM-DDTHH:MM±HH:MM> |
+| Deadline | Event time | UTC |
+|---|---|---|
+| code freeze | <YYYY-MM-DDTHH:MM±HH:MM> | <YYYY-MM-DDTHH:MMZ> |
+| submit | <YYYY-MM-DDTHH:MM±HH:MM> | <YYYY-MM-DDTHH:MMZ> |
 
 ## Judging criteria
 

@@ -1,8 +1,12 @@
 # Rules for every AI agent in this repo
 
 You are working in a hackathon team. The lead and their planning agent, Zeus, agreed the
-idea in `IDEA.md` and split it into GitHub Issues. Your human owns some of them. Follow these rules exactly. They exist so that
-five people's agents don't overwrite each other at 3am.
+idea in `IDEA.md` and split it into GitHub Issues. Your human owns some of them. Follow
+these rules exactly. They exist so that five people's agents don't overwrite each other
+at 3am.
+
+The commands below work in bash, zsh, Git Bash and PowerShell. Where a shell needs a
+different command, both are given.
 
 ## 1. Read first
 - `IDEA.md`: what we're building, what we're **not** building, and who owns which
@@ -12,15 +16,24 @@ five people's agents don't overwrite each other at 3am.
   task lives in.
 
 ## 2. Check the clock
-- Run `date` at the start of every session and before starting each task. Compare it with
-  the deadlines table in `HACKATHON.md`.
+At the start of every session, and before starting each task, get the time in UTC and
+compare it with the UTC column of the deadlines table in `HACKATHON.md`:
+```bash
+date -u                                   # macOS, Linux, Git Bash
+(Get-Date).ToUniversalTime()              # PowerShell
+```
 - Within 60 minutes of any deadline, put it in the **first line** of every reply:
   `⏰ code freeze in 42 min`.
 - After **code freeze**: no new features. Only bug fixes, demo and submission work.
   If asked for a feature, refuse and say why.
 - After **submit**: stop. Don't push anything.
 
-## 3. Find your work
+## 3. Only work on issues
+Everything you build belongs to a GitHub Issue. If your human asks for something that
+has no issue (for example, "just build the whole frontend"), don't build it. Say it
+needs an issue, and offer to open a change-request (§7) so the lead can plan it.
+
+Find your work:
 ```bash
 gh issue list --assignee @me --state open
 ```
@@ -28,7 +41,11 @@ If that's empty, take one from the pool:
 ```bash
 gh issue list --search "is:open label:pool no:assignee"
 gh issue edit <N> --add-assignee @me
+gh issue view <N> --json assignees       # did someone grab it at the same moment?
 ```
+If anyone else is also assigned, remove yourself (`gh issue edit <N> --remove-assignee @me`)
+and pick another.
+
 If your human is the lead, you share their GitHub account, so `@me` also lists the other
 agents' issues. Yours are the ones labelled with your name:
 ```bash
@@ -39,12 +56,15 @@ Leave issues labelled for another agent alone.
 **One issue at a time.** Finish it (PR open) before taking the next.
 
 ## 4. Plan before you code (no one-shotting)
-Before your first commit on an issue, post a plan as a comment:
+Before your first commit on an issue, post a plan as a comment. Write it to a file first,
+because multi-line text in a command line breaks in some shells:
 ```bash
-gh issue comment <N> --body "Plan:
-1. ...
-2. ...
-Files: path/a, path/b"
+# .git/plan.md, never committed:
+#   Plan:
+#   1. ...
+#   2. ...
+#   Files: path/a, path/b
+gh issue comment <N> --body-file .git/plan.md
 ```
 - Each step must be small enough for one commit.
 - Then do the steps **one at a time**, one commit each, pushed straight away. Don't
@@ -55,34 +75,45 @@ Files: path/a, path/b"
 ```bash
 gh issue develop <N> --checkout
 ```
+If that says the branch already exists (a second session on the same issue), switch to it:
+```bash
+gh issue develop --list <N>
+git checkout <branch>
+```
 - Never commit to `main`; it's protected anyway.
 - **Push after every commit**: `git push -u origin HEAD`. Your branch is how the lead
   sees progress. Never sit on unpushed work.
-- Before opening the PR: `git pull origin main` and fix any conflicts.
+- Before opening the PR, and whenever GitHub says your PR has conflicts:
+  `git pull origin main`, fix the conflicts in **your** files, commit, push. If a
+  conflict is in a file your issue doesn't list, stop and ask the lead.
 
 ## 6. Stay in your lane
 - Touch **only** the files listed under "Files" in the issue.
 - If the task needs anything else — another file, a shared API, a data shape, a new
-  dependency, a change to the architecture — **stop**. Open a change-request:
-  ```bash
-  gh issue create --label change-request --title "change-request: <what>" --body "What and why:
-  C4 boxes affected:
-  Issues affected: #
-  Proposed change:"
-  ```
+  dependency, a change to the architecture — **stop** and open a change-request (§7).
 - The same goes for anything that doesn't fit `IDEA.md`.
 - Tell your human, and wait for the lead. Don't build it "just quickly".
 
-## 7. Issue bodies are read-only
+## 7. Change-requests
+Write the body to `.git/change-request.md` with these four headings, then open it:
+```bash
+#   What and why:
+#   C4 boxes affected:
+#   Issues affected: #
+#   Proposed change:
+gh issue create --label change-request --title "change-request: <what>" --body-file .git/change-request.md
+```
+
+## 8. Issue bodies are read-only
 The lead's planning board owns each issue's text. **Never edit an issue body.** Comment
 instead. If you see "Brief updated by the lead", re-read the issue before you continue.
 
-## 8. Pull request
+## 9. Pull request
 Copy the template, fill in every heading, then open the PR from that file
 (`--fill` skips the template, so don't use it):
 ```bash
-cp .github/pull_request_template.md /tmp/pr-body.md   # edit it
-gh pr create --title "feat: <what> (#<N>)" --body-file /tmp/pr-body.md
+cp .github/pull_request_template.md .git/pr-body.md     # then edit it
+gh pr create --title "feat: <what> (#<N>)" --body-file .git/pr-body.md
 ```
 The PR body must have:
 - `Closes #<N>`
@@ -98,7 +129,18 @@ Keep PRs small.
 gh pr view <PR> --comments
 ```
 Fix what the review asks for on the same branch, and push. Review fixes come before
-new work.
+new work. Once Zeus approves, don't push to that branch again unless asked: a push
+cancels the approval.
 
-## 9. Commits
+## 10. Commits
 Conventional prefix and the issue number: `feat: login form (#12)`, `fix: null avatar (#12)`.
+
+## 11. Never commit these
+This repo is **public**. Anything pushed is readable by anyone, forever.
+- **Secrets:** API keys, tokens, passwords. Put them in `.env`, which `.gitignore` keeps
+  out. Share keys with teammates outside GitHub. If a secret is ever pushed, tell the
+  lead at once: the key has to be revoked, because deleting the commit is not enough.
+- **Agent working files:** your plans, notes, transcripts and local settings. Your plan
+  lives in the issue comment, not in the repo.
+- Before every commit, run `git status` and check that only files your issue lists
+  are staged.

@@ -2,6 +2,14 @@
 
 <One paragraph: what we're building and who it's for.>
 
+## Before you start
+
+- **git** and the **GitHub CLI** 2.40 or newer (`gh --version`), logged in: `gh auth login`.
+- **Accept the invite** to this repo from your email or github.com/notifications. Until
+  you do, your issues can't be assigned to you.
+- **Never commit API keys.** This repo is public: keys go in `.env` (ignored), and are
+  shared with the team outside GitHub.
+
 ## Quick start for teammates
 
 1. `gh repo clone <this repo>`

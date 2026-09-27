@@ -1,7 +1,7 @@
 # The idea
 
 Zeus writes this once the lead has agreed the idea, and no issue is created before it is
-complete. If your task doesn't fit this page, open a change-request (AGENTS.md §6).
+complete. If your task doesn't fit this page, open a change-request (AGENTS.md §7).
 
 ## Problem
 

@@ -1,0 +1,25 @@
+# Secrets: this repo is public. Keys go in .env and are shared outside GitHub.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Agent working files: plans live in issue comments, not in the repo.
+docs/superpowers/
+.claude/settings.local.json
+.aider*
+
+# Dependencies and build output
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+.next/
+
+# OS noise
+.DS_Store
+Thumbs.db
