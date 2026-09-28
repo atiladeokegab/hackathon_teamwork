@@ -8,9 +8,12 @@ Smoke: `<the one command that proves the product works: tests plus one end-to-en
 
 The product that ships is `main`: the last commit that passed the smoke check.
 
+Board: <link to the event's GitHub Project board>
+
 ## Deadlines
 
-Your agent checks these every session against the UTC column.
+Your agent checks these every session against the UTC column. GitHub milestones keep only the
+date, so this UTC column is the clock, never the milestone.
 
 | Deadline | Event time | UTC |
 |---|---|---|

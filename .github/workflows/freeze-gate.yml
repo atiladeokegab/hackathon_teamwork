@@ -1,0 +1,22 @@
+name: freeze-gate
+# After code freeze only fixes merge into integration. gh-sync --init makes this a required
+# check and keeps the FREEZE_AT repo variable in step with the event's code freeze (UTC).
+on:
+  pull_request:
+    branches: [integration]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+jobs:
+  freeze-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: After code freeze, only PRs labelled fix may merge
+        env:
+          FREEZE_AT: ${{ vars.FREEZE_AT }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if [ -z "$FREEZE_AT" ]; then echo "FREEZE_AT is not set: the gate is open."; exit 0; fi
+          if [ "$(date -u +%s)" -lt "$(date -u -d "$FREEZE_AT" +%s)" ]; then
+            echo "Before code freeze ($FREEZE_AT)."; exit 0; fi
+          case ",$LABELS," in *,fix,*) echo "After code freeze, labelled fix: allowed."; exit 0;; esac
+          echo "::error::Code freeze was $FREEZE_AT. Only fixes merge now: ask Zeus to add the 'fix' label if this is one."
+          exit 1

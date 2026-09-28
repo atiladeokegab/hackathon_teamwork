@@ -28,7 +28,8 @@ date -u                                   # macOS, Linux, Git Bash
 - Within 60 minutes of any deadline, put it in the **first line** of every reply:
   `⏰ code freeze in 42 min`.
 - After **code freeze**: no new features. Only bug fixes, demo and submission work.
-  If asked for a feature, refuse and say why.
+  If asked for a feature, refuse and say why. GitHub enforces this: after the freeze, the
+  `freeze-gate` check fails on any PR to `integration` that Zeus hasn't labelled `fix`.
 - After **submit**: stop. Don't push anything.
 
 ## 3. Only work on issues
@@ -55,10 +56,13 @@ On the lead's shared account, add `--label agent:<your name>` to the second comm
 Only Zeus runs the first: questions for the lead reach the lead through Zeus. The first
 finds questions that @mention you, assigned or not.
 
-Find your work:
+Find your work. Tasks are owned by **humans**; an agent works on its human's tasks:
 ```bash
-gh issue list --assignee "@me" --state open --label task
+gh issue list --assignee "@me" --state open --label task          # your human's tasks
+gh issue list --label agent:<your name> --label task --state open  # delegated to you by name
 ```
+Your human may hand one of their tasks to you by name: the issue then carries the label
+`agent:<your name>`. To say which agent works on your own issue, add that label yourself.
 An issue that says `Depends on: #N` is ready when #N is closed: take ready ones first. If
 all of yours are waiting, start one anyway against the contract its brief describes, and
 list that under Assumptions in your PR.
@@ -74,14 +78,11 @@ picks another.
 
 If your human is the lead, you share their GitHub account, so `"@me"` also lists the other
 agents' issues and PRs. Yours are the ones labelled with your agent name (Zeus or
-Prometheus):
-```bash
-gh issue list --label agent:<your name> --label task --state open
-```
-Leave issues labelled for another agent alone, and their PRs too: before touching a PR
-from `"@me"`, check that the issue it closes carries your label. **Don't take pool
-issues**: on a shared account nobody can tell who claimed one. The lead assigns your work
-on the hub.
+Prometheus). Leave issues labelled for another agent alone, and their PRs too: before
+touching a PR from `"@me"`, check that the issue it closes carries your label. **Don't take
+pool issues** on a shared account: nobody can tell which agent claimed one. Your human claims
+it and hands it to you. An agent with its **own** GitHub account may claim a pool issue on
+behalf of its human; the lead's board then records the human as owner and you as the agent.
 
 **One issue at a time.** Take the next one when this one has an open PR and every change
 a review asked for is pushed. Before you take it, run the questions checks (§8) again.
@@ -186,11 +187,16 @@ differs from your guess, fix it first:
 
 A question never asks someone to change their code. That is a change-request (§7).
 
-## 9. Issue bodies are read-only
-The lead's planning board owns each issue's text. **Never edit an issue body.** Comment
-instead. If you see "Brief updated by the lead", re-read the issue before you continue.
+## 9. Editing an issue body
+Edit **only your own tasks' bodies** (issues assigned to you or your human), and only to make
+the brief better serve the goal in `IDEA.md`. **Never change the `Files:` line**: taking more
+files is a change-request (§7). After an edit, comment one line saying what you changed and
+why. The lead's board takes an owner's edit in by itself; anyone else's edit waits for the
+lead. If you see "Brief updated by the lead", re-read the issue before you continue.
 
 ## 10. Pull request
+First re-read the issue: if it has a "Brief updated by the lead" comment newer than your plan,
+check your work against the new brief before opening the PR.
 Copy the template, fill in every heading, then open the PR from that file
 (`--fill` skips the template, so don't use it):
 ```bash
