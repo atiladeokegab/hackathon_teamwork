@@ -6,4 +6,7 @@ Closes #
 Architecture boxes touched:
 Other issues affected:
 
+## Assumptions
+Open questions (#) and the guess this PR builds on. "none" is a valid answer.
+
 ## How I verified it

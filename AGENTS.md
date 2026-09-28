@@ -44,11 +44,17 @@ gh pr view <PR> --json reviewDecision,reviews,comments
 Read the reviews' text, not only `reviewDecision`: Zeus's review on a PR from the lead's
 own account can only be a comment. If a review asked for changes, fix those before
 anything else, on that PR's branch. Never open a second branch or PR for an issue that
-already has one, unless Zeus reverted it (§9).
+already has one, unless Zeus reverted it (§10).
+
+Then questions (§8): answer any asked of you, and read the answers to yours.
+```bash
+gh issue list --label question --assignee "@me" --state open
+gh issue list --label question --author "@me" --state closed --search "closed:>=$(date -u +%F)"
+```
 
 Find your work:
 ```bash
-gh issue list --assignee "@me" --state open
+gh issue list --assignee "@me" --state open --label task
 ```
 If that's empty, take one from the pool:
 ```bash
@@ -64,7 +70,7 @@ If your human is the lead, you share their GitHub account, so `"@me"` also lists
 agents' issues and PRs. Yours are the ones labelled with your agent name (Zeus or
 Prometheus):
 ```bash
-gh issue list --label agent:<your name> --state open
+gh issue list --label agent:<your name> --label task --state open
 ```
 Leave issues labelled for another agent alone, and their PRs too: before touching a PR
 from `"@me"`, check that the issue it closes carries your label. **Don't take pool
@@ -137,11 +143,34 @@ Write the body to `.git/change-request.md` with these four headings, then open i
 gh issue create --label change-request --title "change-request: <what>" --body-file .git/change-request.md
 ```
 
-## 8. Issue bodies are read-only
+## 8. Questions
+A question you can't answer from your own area, `IDEA.md` or the issue: ask the person who
+owns that area (`IDEA.md`, "Areas and owners"). Design, data, voice: whoever owns it, even
+with no code.
+```bash
+gh issue create --label question --assignee <their handle> \
+  --title "question: <one line>" --body-file .git/question.md
+```
+The body: `@<their handle>`, the question, which issue it's for, and your guess: "I'll use X
+unless you say otherwise." On the lead's shared account, add `--label agent:<your name>`.
+
+**Don't wait.** Build on your guess, and list it under Assumptions in your PR.
+
+**A question asked of you** (the session-start check): show it to your human with a draft
+answer from your area's code. They edit or approve it; then post it and close the issue:
+`gh issue close <N> --comment "<answer>"`. If the answer means new work in your area, open a
+`task` issue for it (§6).
+
+**Your question answered** (the session-start check): if the answer differs from your guess,
+fix it on the same branch before anything else.
+
+A question never asks someone to change their code. That is a change-request (§7).
+
+## 9. Issue bodies are read-only
 The lead's planning board owns each issue's text. **Never edit an issue body.** Comment
 instead. If you see "Brief updated by the lead", re-read the issue before you continue.
 
-## 9. Pull request
+## 10. Pull request
 Copy the template, fill in every heading, then open the PR from that file
 (`--fill` skips the template, so don't use it):
 ```bash
@@ -154,6 +183,7 @@ The PR body must have:
 - Impact: which Architecture boxes and which other issues this touches ("none" is a
   valid answer)
 - how you verified it
+- Assumptions: open questions and the guess used ("none" is valid)
 
 Keep PRs small.
 
@@ -170,10 +200,10 @@ Fix what the review asks for on the same branch, and push. A review fix needs no
 plan: comment on the PR with what you changed. Review fixes come before new work. Once Zeus approves, don't push to that branch again unless asked: a push
 cancels the approval.
 
-## 10. Commits
+## 11. Commits
 Conventional prefix and the issue number: `feat: login form (#12)`, `fix: null avatar (#12)`.
 
-## 11. Never commit these
+## 12. Never commit these
 This repo is **public**. Anything pushed is readable by anyone, forever.
 - **Secrets:** API keys, tokens, passwords. Put them in `.env`, which `.gitignore` keeps
   out. Share keys with teammates outside GitHub. If a secret is ever pushed, tell the

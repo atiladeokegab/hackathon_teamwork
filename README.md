@@ -172,6 +172,7 @@ product.
 | One small commit per step, pushed straight away | The lead can see progress, and nothing is lost if your laptop dies |
 | Stay in your area | Two people editing one file lose each other's work |
 | Anything bigger: open a change-request | The lead re-plans it for everyone, instead of it surprising someone later |
+| Question outside your area: ask its owner, keep building on your guess | The expert answers in minutes; nobody sits blocked |
 | Never edit an issue body; comment instead | The lead's board owns the text, and would overwrite your edit |
 | PR from the template: plan link ticked, Impact, how you checked | The reviewer knows what to look at in one glance |
 | Never merge; don't push after approval | Zeus merges; a push after approval cancels it |
@@ -211,6 +212,7 @@ Every one of these happened for real while this kit was tested.
 | **CODEOWNERS** | The file that makes the lead's approval required on every PR |
 | **Milestone** | A deadline on GitHub: each issue belongs to `code freeze` or `submit` |
 | **Change-request** | An issue asking the lead to re-plan something outside your area |
+| **Question** | An issue asking the owner of an area something; your agent keeps building on its guess meanwhile |
 | **Code freeze** | The time after which only fixes, demo and submission work are allowed |
 
 ---
