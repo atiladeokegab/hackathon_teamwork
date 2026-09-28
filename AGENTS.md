@@ -48,8 +48,8 @@ already has one, unless Zeus reverted it (§10).
 
 Then questions (§8): answer any asked of you, and read the answers to yours.
 ```bash
-gh issue list --label question --mention "@me" --state open
-gh issue list --label question --author "@me" --state open --json number,title,comments
+gh issue list --label question --mention "@me" --state open --limit 100
+gh issue list --label question --author "@me" --state open --limit 100 --json number,title,comments
 ```
 On the lead's shared account, add `--label agent:<your name>` to the second command.
 Only Zeus runs the first: questions for the lead reach the lead through Zeus. The first
@@ -104,7 +104,8 @@ gh issue comment <N> --body-file .git/plan.md
   and opening the PR are steps too; they need no commit.
 - Then do the steps **one at a time**, one commit each, pushed straight away. Don't
   generate the whole feature in one go.
-- When a step is done, say so in a comment.
+- Your pushed commits show your progress; don't comment per step. Comment on the issue only
+  when something changes: you're blocked, an assumption changed, or you're answering a review.
 
 ## 5. Branch
 ```bash
