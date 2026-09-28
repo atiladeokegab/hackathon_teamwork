@@ -49,8 +49,10 @@ already has one, unless Zeus reverted it (§10).
 Then questions (§8): answer any asked of you, and read the answers to yours.
 ```bash
 gh issue list --label question --assignee "@me" --state open
-gh issue list --label question --author "@me" --state closed --search "closed:>=$(date -u +%F)"
+gh issue list --label question --author "@me" --state open --json number,title,comments
 ```
+On the lead's shared account, add `--label agent:<your name>` to the second command.
+Only Zeus runs the first: questions assigned to the lead reach the lead through Zeus.
 
 Find your work:
 ```bash
@@ -78,7 +80,7 @@ issues**: on a shared account nobody can tell who claimed one. The lead assigns 
 on the hub.
 
 **One issue at a time.** Take the next one when this one has an open PR and every change
-a review asked for is pushed.
+a review asked for is pushed. Before you take it, run the questions checks (§8) again.
 
 ## 4. Plan before you code (no one-shotting)
 Before your first commit on an issue, post a plan as a comment. Write it to a file first,
@@ -146,23 +148,33 @@ gh issue create --label change-request --title "change-request: <what>" --body-f
 ## 8. Questions
 A question you can't answer from your own area, `IDEA.md` or the issue: ask the person who
 owns that area (`IDEA.md`, "Areas and owners"). Design, data, voice: whoever owns it, even
-with no code.
+with no code. Use their handle without the `@`:
 ```bash
-gh issue create --label question --assignee <their handle> \
+gh issue create --label question --assignee <handle> \
   --title "question: <one line>" --body-file .git/question.md
 ```
-The body: `@<their handle>`, the question, which issue it's for, and your guess: "I'll use X
-unless you say otherwise." On the lead's shared account, add `--label agent:<your name>`.
+The body: `@<handle>`, the question, which issue it's for, and your guess: "I'll use X unless
+you say otherwise." If it fails with `not found` (they haven't accepted the invite yet), run it
+again without `--assignee`: the @mention still notifies them. On the lead's shared account,
+add `--label agent:<your name>`. Prometheus has no GitHub access: it sends the question to Zeus,
+who opens it and relays the answer.
 
 **Don't wait.** Build on your guess, and list it under Assumptions in your PR.
 
 **A question asked of you** (the session-start check): show it to your human with a draft
-answer from your area's code. They edit or approve it; then post it and close the issue:
-`gh issue close <N> --comment "<answer>"`. If the answer means new work in your area, open a
-`task` issue for it (§6).
+answer from your area. They edit or approve it; then post it as a comment and leave the issue
+open for the asker:
+```bash
+gh issue comment <N> --body-file .git/answer.md
+```
+If the answer means new work in your area, open a `task` issue for it (§6).
 
-**Your question answered** (the session-start check): if the answer differs from your guess,
-fix it on the same branch before anything else.
+**Answers to your questions** (the session-start check lists your open ones with their
+comments): apply each answer, then close that question with `gh issue close <N>`. If the answer
+differs from your guess, fix it first:
+- your PR is still open: on the same branch (an approved PR: comment first, because a push
+  cancels the approval);
+- your PR is merged: open a `task` issue for the fix (§6).
 
 A question never asks someone to change their code. That is a change-request (§7).
 
