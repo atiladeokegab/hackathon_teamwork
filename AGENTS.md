@@ -44,7 +44,7 @@ gh pr view <PR> --json reviewDecision,reviews,comments
 Read the reviews' text, not only `reviewDecision`: Zeus's review on a PR from the lead's
 own account can only be a comment. If a review asked for changes, fix those before
 anything else, on that PR's branch. Never open a second branch or PR for an issue that
-already has one.
+already has one, unless Zeus reverted it (§9).
 
 Find your work:
 ```bash
@@ -158,8 +158,8 @@ The PR body must have:
 Keep PRs small.
 
 PRs go to `integration`, the default base, so there is nothing to type. After Zeus merges,
-it runs the smoke check. If your merge turns it red, Zeus reverts it and comments the failing
-output on your PR: fix it on the same branch, push, and open a new PR (`gh pr create` again).
+it runs the smoke check. If your merge turns it red, Zeus reverts it, reopens your issue and comments the failing
+output there: fix it on the same branch, push, and open a new PR (`gh pr create` again).
 
 **Never merge**, not even your own PR. Zeus reviews every PR against its issue and
 `IDEA.md`, and merges it. Until then the PR is still yours:
