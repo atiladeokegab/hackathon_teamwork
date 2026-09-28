@@ -8,7 +8,7 @@ body:
     validations: {required: true}
   - type: textarea
     id: files
-    attributes: {label: Files, description: The only files this task may touch.}
+    attributes: {label: Files, description: "The area this task works in: its owner's directories (IDEA.md, Areas and owners)."}
     validations: {required: true}
   - type: textarea
     id: approach

@@ -4,6 +4,10 @@
 
 Official rules: <link>
 
+Smoke: `<the one command that proves the product works: tests plus one end-to-end run>`
+
+The product that ships is `main`: the last commit that passed the smoke check.
+
 ## Deadlines
 
 Your agent checks these every session against the UTC column.

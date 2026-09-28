@@ -1,5 +1,5 @@
 name: Change request
-description: The task needs something outside its files. Stop and ask the lead.
+description: The task needs something outside your area, the core, a dependency or IDEA.md. Stop and ask the lead.
 title: "change-request: "
 labels: [change-request]
 body:

@@ -13,7 +13,7 @@ syntax.
 
 ## 1. Read first
 - `IDEA.md`: what we're building, what we're **not** building, and who owns which
-  section. Everything you build must fit it.
+  area. Everything you build must fit it.
 - `HACKATHON.md`: the brief, the **deadlines**, the rules, the judging criteria.
 - `README.md` → Architecture: the diagram of what we're building. Know which box your
   task lives in.
@@ -105,22 +105,29 @@ git fetch origin
 git branch -r --list "origin/<N>-*"
 git checkout <N>-<rest of the name>
 ```
-- Never commit to `main`; it's protected anyway.
+- Your branch starts from `integration`, the repo's default branch (`gh issue develop` does
+  this for you). Never commit to `integration` or `main`; both are protected.
 - **Push after every commit**: `git push -u origin HEAD`. Your branch is how the lead
   sees progress. Never sit on unpushed work.
-- Before opening the PR, and whenever GitHub says your PR has conflicts, merge main in:
-  `git pull --no-rebase origin main` (plain `git pull` refuses when your branch and main
-  have both moved). Fix the conflicts in **your** files, commit, push. If a
-  conflict is in a file your issue doesn't list, stop and ask the lead.
+- Before opening the PR, and whenever GitHub says your PR has conflicts, merge integration in:
+  `git pull --no-rebase origin integration` (plain `git pull` refuses when your branch and
+  integration have both moved). Fix the conflicts in **your area**, commit, push. If a
+  conflict is outside your area, stop and ask the lead.
+- `main` is the last version that passed the smoke check. You never touch it; Zeus moves it.
 
-## 6. Stay in your lane
-- Touch **only** the files listed under "Files" in the issue.
-- If the task needs anything else — another file, a shared API, a data shape, a new
-  dependency, a change to the architecture — **stop** and open a change-request (§7).
-- The same goes for anything that doesn't fit `IDEA.md`.
-- Tell your human, and wait for the lead. Don't build it "just quickly".
+## 6. Stay in your area
+- Your **area** is the directories `IDEA.md` lists against your name under "Areas and owners".
+  Inside it, change whatever your task needs: new files, refactors, tests.
+- Found more work inside your area? Open an issue for it yourself, with the same headings as
+  the lead's (Context, Files, Approach, Acceptance, Verify, Deadline), label `task`, assigned
+  to you: `gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/issue.md`.
+- Anything outside your area — another person's area, the core, a dependency
+  (`pyproject.toml`, `package.json`, …), or anything that doesn't fit `IDEA.md` — **stop** and
+  open a change-request (§7). Tell your human, and wait for the lead. Don't build it "just quickly".
 
 ## 7. Change-requests
+Only for work outside your area, the core, dependencies or `IDEA.md` (§6).
+
 Write the body to `.git/change-request.md` with these four headings, then open it:
 ```bash
 #   What and why:
@@ -150,6 +157,10 @@ The PR body must have:
 
 Keep PRs small.
 
+PRs go to `integration`, the default base, so there is nothing to type. After Zeus merges,
+it runs the smoke check. If your merge turns it red, Zeus reverts it and comments the failing
+output on your PR: fix it on the same branch, push, and open a new PR (`gh pr create` again).
+
 **Never merge**, not even your own PR. Zeus reviews every PR against its issue and
 `IDEA.md`, and merges it. Until then the PR is still yours:
 ```bash
@@ -169,6 +180,6 @@ This repo is **public**. Anything pushed is readable by anyone, forever.
   lead at once: the key has to be revoked, because deleting the commit is not enough.
 - **Agent working files:** your plans, notes, transcripts and local settings. Your plan
   lives in the issue comment, not in the repo.
-- Before every commit, run `git status` and check that only files your issue lists
+- Before every commit, run `git status` and check that only files in your area
   are staged, and that `git config user.email` is your own address: commits are
   credited to whoever that email belongs to.

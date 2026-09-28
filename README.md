@@ -71,9 +71,9 @@ flowchart LR
 | Who | Does | Never does |
 |---|---|---|
 | **Lead** | Agrees the idea, approves the plan, the owners and every merge | — |
-| **Zeus** (lead's agent) | Plans, writes every issue, reviews every PR, merges | Builds a teammate's section |
+| **Zeus** (lead's agent) | Plans, writes every issue, reviews every PR, merges | Builds in a teammate's area |
 | **Prometheus** (lead's agent) | Builds the issues assigned to it | Takes pool issues |
-| **You** | Own your section; tell your agent what to pick up; check its work | Merge; edit someone else's files |
+| **You** | Own your area; tell your agent what to pick up; check its work | Merge; edit someone else's area |
 | **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges; builds anything that has no issue |
 
 ## Your first hour
@@ -109,7 +109,7 @@ stateDiagram-v2
     Pool --> Assigned: someone takes it
     Assigned --> Planned: plan comment posted
     Planned --> Building: branch and commits
-    Building --> Blocked: needs more than its files
+    Building --> Blocked: needs work outside its area
     Blocked --> Building: lead re-plans
     Building --> InReview: PR opened
     InReview --> Building: changes requested
@@ -150,9 +150,11 @@ sequenceDiagram
     GH-->>You: Issue closed, task done on the lead's board
 ```
 
-GitHub enforces the important part. Nobody can push straight to `main`. A PR can't be
+GitHub enforces the important part. Nobody can push straight to `integration` or `main`. A PR can't be
 merged until the lead has approved it. A push after approval cancels the approval, so
-what gets merged is exactly what was reviewed.
+what gets merged is exactly what was reviewed. Zeus merges PRs into `integration`,
+runs the smoke check, and moves `main` only when it's green: `main` is always a working
+product.
 
 ## The rules in one table
 
@@ -166,9 +168,9 @@ what gets merged is exactly what was reviewed.
 | Review fixes first, every session | A PR waiting on you blocks everyone who depends on it |
 | One issue at a time | Small PRs get reviewed fast; big ones sit |
 | Post a plan before the first commit | Mistakes are cheapest to catch before any code exists |
-| One branch per issue (`gh issue develop 12 --checkout`) | Your work never lands on `main` unreviewed |
+| One branch per issue (`gh issue develop 12 --checkout`) | Your work never lands on `integration` unreviewed |
 | One small commit per step, pushed straight away | The lead can see progress, and nothing is lost if your laptop dies |
-| Touch only the files the issue lists | Two people editing one file lose each other's work |
+| Stay in your area | Two people editing one file lose each other's work |
 | Anything bigger: open a change-request | The lead re-plans it for everyone, instead of it surprising someone later |
 | Never edit an issue body; comment instead | The lead's board owns the text, and would overwrite your edit |
 | PR from the template: plan link ticked, Impact, how you checked | The reviewer knows what to look at in one glance |
@@ -184,9 +186,9 @@ Every one of these happened for real while this kit was tested.
 | `HTTP 403`, "Resource not accessible by personal access token", or "Permission … denied" on push | You logged in with a fine-grained token (`github_pat_…`) | `gh auth login` again, in the browser |
 | `'you' not found` when your issue is assigned, or no issues assigned to you | You haven't accepted the repo invite yet | Accept it at github.com/notifications, then wait for the next sync (about 10 minutes) |
 | `gh issue list --assignee @me` ignores the filter (PowerShell) | PowerShell reads `@me` as its own syntax | Quote it: `"@me"` |
-| `fatal: Need to specify how to reconcile divergent branches` | Plain `git pull` refuses once your branch and `main` have both moved | `git pull --no-rebase origin main`, fix conflicts in your files, commit, push |
+| `fatal: Need to specify how to reconcile divergent branches` | Plain `git pull` refuses once your branch and `integration` have both moved | `git pull --no-rebase origin integration`, fix conflicts in your area, commit, push |
 | `GraphQL: Projects (classic) is being deprecated` | `gh issue view` / `gh pr view` without `--json`, on gh older than 2.77 | Use the `--json` form from AGENTS.md, or update gh |
-| `GH006: Protected branch update failed` | You pushed to `main` | Push to your issue's branch and open a PR |
+| `GH006: Protected branch update failed` | You pushed to `integration` or `main` | Push to your issue's branch and open a PR |
 | "Waiting on code owner review" | The lead hasn't approved your PR yet (or a push cancelled the approval) | Nothing: wait for Zeus's review |
 | Your plan comment shows up garbled | Windows PowerShell's `>` wrote the file as UTF-16 | Write it with your editor, or `Set-Content -Encoding utf8` |
 | The pool search comes back empty right after the lead adds work | GitHub's search index lags a few seconds | Wait a minute and search again |
@@ -196,18 +198,19 @@ Every one of these happened for real while this kit was tested.
 
 | Word | Meaning here |
 |---|---|
-| **Issue** | One task, written by Zeus: context, the files you may touch, the approach, how to check it, its deadline |
+| **Issue** | One task, written by Zeus: context, your area, the approach, how to check it, its deadline |
 | **Pool** | Issues with no owner. Anyone who finishes early takes one |
 | **Branch** | Your own copy of the code for one issue. Named after it, like `12-add-login-form` |
 | **Commit** | One saved step of work, with a message like `feat: login form (#12)` |
 | **Push** | Sending your commits to GitHub so others can see them |
-| **Pull request (PR)** | Asking for your branch to be merged into `main` |
+| **Pull request (PR)** | Asking for your branch to be merged into `integration` |
 | **Review** | Zeus reading your PR against the issue and `IDEA.md`, then approving it or asking for changes |
-| **Merge** | Your branch joining `main`. Only Zeus does this |
-| **`main`** | The shared, working version of the project. Protected: nobody pushes to it directly |
+| **Merge** | Your branch joining `integration`. Only Zeus does this |
+| **`integration`** | Where every merged PR lands. The default branch |
+| **`main`** | The last version that passed the smoke check. Only Zeus moves it |
 | **CODEOWNERS** | The file that makes the lead's approval required on every PR |
 | **Milestone** | A deadline on GitHub: each issue belongs to `code freeze` or `submit` |
-| **Change-request** | An issue asking the lead to re-plan something outside your issue |
+| **Change-request** | An issue asking the lead to re-plan something outside your area |
 | **Code freeze** | The time after which only fixes, demo and submission work are allowed |
 
 ---

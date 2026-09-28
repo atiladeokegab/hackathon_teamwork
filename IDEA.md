@@ -23,8 +23,12 @@ complete. If your task doesn't fit this page, open a change-request (AGENTS.md ย
 
 <What the judges see in 30 seconds.>
 
-## Sections and owners
+## Areas and owners
 
-| Section | Owner | Issues |
-|---|---|---|
-| <section of the app> | @<handle> | #<n>, #<n> |
+Each person owns their area's directories outright (AGENTS.md ยง6). The core is the shared
+contracts; only the lead changes it.
+
+| Area | Directories | Owner | Issues |
+|---|---|---|---|
+| core | <dirs> | @<lead handle> | #<n> |
+| <area> | <dirs> | @<handle> | #<n>, #<n> |
