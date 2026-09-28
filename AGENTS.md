@@ -170,7 +170,8 @@ gh issue comment <N> --body-file .git/answer.md
 If the answer means new work in your area, open a `task` issue for it (§6).
 
 **Answers to your questions** (the session-start check lists your open ones with their
-comments): apply each answer, then close that question with `gh issue close <N>`. If the answer
+comments). A comment that only says "this is waiting on you" is Zeus's reminder to the owner,
+not an answer. Apply each answer, then close that question with `gh issue close <N>`. If the answer
 differs from your guess, fix it first:
 - your PR is still open: on the same branch (an approved PR: comment first, because a push
   cancels the approval);

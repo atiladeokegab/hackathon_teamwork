@@ -99,6 +99,8 @@ flowchart TB
 
 Your job while the agent works: read its plan comment before it starts, and glance at
 each commit. If the plan looks wrong, say so on the issue. That is cheaper than a wrong PR.
+Your agent will also bring you questions to approve: a teammate asking about your area, with a
+draft answer. Edit or approve it; the asker is building on a guess until you do.
 
 ## Life of an issue
 
@@ -199,7 +201,7 @@ Every one of these happened for real while this kit was tested.
 
 | Word | Meaning here |
 |---|---|
-| **Issue** | One task, written by Zeus: context, your area, the approach, how to check it, its deadline |
+| **Issue** | One piece of work, a question, or a change-request. A task issue is written by Zeus (or by you, in your own area): context, your area, the approach, how to check it, its deadline |
 | **Pool** | Issues with no owner. Anyone who finishes early takes one |
 | **Branch** | Your own copy of the code for one issue. Named after it, like `12-add-login-form` |
 | **Commit** | One saved step of work, with a message like `feat: login form (#12)` |
