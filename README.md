@@ -34,16 +34,17 @@ thing in one prompt.
 
 ```mermaid
 flowchart TB
-    subgraph LEAD["On the lead's PC"]
+    subgraph LEAD["Together, at the lead's laptop"]
         A["1 · Paste the event brief"] --> B["2 · Pull out every deadline"]
-        B --> C["3 · Plan the idea: brainstorm, challenge it, draw it"]
-        C --> D["4 · Split it into small tasks and pick owners"]
-        D --> E["5 · Approve IDEA.md: what we build and who owns what"]
+        B --> C["3 · Pitch ideas, then plan one: brainstorm, challenge it, draw it"]
+        C --> D["4 · Approve IDEA.md: what we build, the areas, the smoke check"]
+        D --> E["5 · Split it into tasks; each area gets an owner"]
     end
     subgraph GH["On GitHub: this repo"]
         F["6 · Every task becomes an Issue"]
         R{"10 · Zeus reviews"}
-        M["11 · PR merged, issue closed"]
+        M["11 · Merged into integration, issue closed"]
+        S{"12 · Smoke check"}
     end
     subgraph YOU["On your machine"]
         G["7 · Your agent picks up your issue"] --> H["8 · Plan comment, branch, small commits"]
@@ -53,7 +54,9 @@ flowchart TB
     I --> R
     R -- "changes needed" --> H
     R -- "approved" --> M
-    M --> N["The lead's board updates by itself"]
+    M --> S
+    S -- "green" --> N["main moves forward; the lead's board updates by itself"]
+    S -- "red: reverted, issue reopened" --> H
 ```
 
 ## Who does what
@@ -88,7 +91,8 @@ flowchart TB
     F --> G["Say: Read AGENTS.md, then pick up my issue"]
     G --> H{"Your agent checks"}
     H -- "a PR of yours has review comments" --> I["Fix those first"]
-    H -- "you have an assigned issue" --> J["Take it"]
+    H -- "a question for you" --> Q["Show you it, with a draft answer"]
+    H -- "you have an assigned issue" --> J["Take it, ready ones first"]
     H -- "nothing assigned" --> K["Take one from the pool"]
     I --> L["Plan comment on the issue"]
     J --> L
@@ -117,13 +121,15 @@ stateDiagram-v2
     InReview --> Building: changes requested
     InReview --> Approved: Zeus approves
     Approved --> InReview: a new push cancels the approval
-    Approved --> Done: Zeus merges
+    Approved --> Merged: Zeus merges into integration
+    Merged --> Done: smoke green, main moves forward
+    Merged --> Building: smoke red: merge reverted, issue reopened
     Done --> [*]
 ```
 
 - **Pool** issues are unowned. Whoever finishes early takes one (AGENTS.md §3).
 - **Blocked** means your agent opened a **change-request** instead of touching a file
-  outside the issue. The lead re-plans, the issue text changes, and you get a
+  outside your area. The lead re-plans, the issue text changes, and you get a
   "Brief updated by the lead" comment.
 
 ## The PR and review loop
@@ -152,7 +158,8 @@ sequenceDiagram
     GH-->>You: Issue closed, task done on the lead's board
 ```
 
-GitHub enforces the important part. Nobody can push straight to `integration` or `main`. A PR can't be
+GitHub enforces the important part. Teammates can't push straight to `integration` or `main`;
+only the lead's account can, which is how Zeus moves `main` and reverts. A PR can't be
 merged until the lead has approved it. A push after approval cancels the approval, so
 what gets merged is exactly what was reviewed. Zeus merges PRs into `integration`,
 runs the smoke check, and moves `main` only when it's green: `main` is always a working

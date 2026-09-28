@@ -48,16 +48,20 @@ already has one, unless Zeus reverted it (§10).
 
 Then questions (§8): answer any asked of you, and read the answers to yours.
 ```bash
-gh issue list --label question --assignee "@me" --state open
+gh issue list --label question --mention "@me" --state open
 gh issue list --label question --author "@me" --state open --json number,title,comments
 ```
 On the lead's shared account, add `--label agent:<your name>` to the second command.
-Only Zeus runs the first: questions assigned to the lead reach the lead through Zeus.
+Only Zeus runs the first: questions for the lead reach the lead through Zeus. The first
+finds questions that @mention you, assigned or not.
 
 Find your work:
 ```bash
 gh issue list --assignee "@me" --state open --label task
 ```
+An issue that says `Depends on: #N` is ready when #N is closed: take ready ones first. If
+all of yours are waiting, start one anyway against the contract its brief describes, and
+list that under Assumptions in your PR.
 If that's empty, take one from the pool:
 ```bash
 gh issue list --search "is:open label:pool no:assignee"
@@ -83,7 +87,7 @@ on the hub.
 a review asked for is pushed. Before you take it, run the questions checks (§8) again.
 
 ## 4. Plan before you code (no one-shotting)
-Before your first commit on an issue, post a plan as a comment. Write it to a file first,
+Before your first commit on an issue, post a plan as a comment. (Prometheus has no GitHub access: it sends its plan to Zeus, who posts it and sends back the link.) Write it to a file first,
 because multi-line text in a command line breaks in some shells. Create the file with your
 own file-editing tool. In Windows PowerShell don't use `>`: it writes UTF-16 and the
 comment arrives garbled. If you must use the shell there, use
@@ -129,6 +133,8 @@ git checkout <N>-<rest of the name>
 - Found more work inside your area? Open an issue for it yourself, with the same headings as
   the lead's (Context, Files, Approach, Acceptance, Verify, Deadline), label `task`, assigned
   to you: `gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/issue.md`.
+- A **pool issue** you've taken is outside every area: while it's yours, you may edit
+  exactly the files its `Files:` line lists, and nothing else, until its PR merges.
 - Anything outside your area — another person's area, the core, a dependency
   (`pyproject.toml`, `package.json`, …), or anything that doesn't fit `IDEA.md` — **stop** and
   open a change-request (§7). Tell your human, and wait for the lead. Don't build it "just quickly".
@@ -150,8 +156,7 @@ A question you can't answer from your own area, `IDEA.md` or the issue: ask the 
 owns that area (`IDEA.md`, "Areas and owners"). Design, data, voice: whoever owns it, even
 with no code. Use their handle without the `@`:
 ```bash
-gh issue create --label question --assignee <handle> \
-  --title "question: <one line>" --body-file .git/question.md
+gh issue create --label question --assignee <handle> --title "question: <one line>" --body-file .git/question.md
 ```
 The body: `@<handle>`, the question, which issue it's for, and your guess: "I'll use X unless
 you say otherwise." If it fails with `not found` (they haven't accepted the invite yet), run it
@@ -161,7 +166,8 @@ who opens it and relays the answer.
 
 **Don't wait.** Build on your guess, and list it under Assumptions in your PR.
 
-**A question asked of you** (the session-start check): show it to your human with a draft
+**A question asked of you** (the session-start check): skip any that already carries your answer
+(it's waiting for the asker). For the rest, show it to your human with a draft
 answer from your area. They edit or approve it; then post it as a comment and leave the issue
 open for the asker:
 ```bash
@@ -188,7 +194,7 @@ Copy the template, fill in every heading, then open the PR from that file
 (`--fill` skips the template, so don't use it):
 ```bash
 cp .github/pull_request_template.md .git/pr-body.md     # then edit it
-gh pr create --title "feat: <what> (#<N>)" --body-file .git/pr-body.md
+gh pr create --title "feat: <what> (#<N>)" --base integration --body-file .git/pr-body.md
 ```
 The PR body must have:
 - `Closes #<N>`
