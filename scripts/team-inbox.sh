@@ -44,6 +44,18 @@ comments() {
 issue_rows() {
     call issue list -R "$repo" --state open --limit 1000 "$@" --json number,title,createdAt,updatedAt,labels,author --jq '.[] | [.number, .title, .createdAt, .updatedAt, ([.labels[].name] | join(",")), .author.login] | @tsv'
 }
+flags() {
+    local n=$1 notes at writer body reply_at reply_writer reply_body answered
+    notes=$(comments "$n") || return 1
+    while IFS=$'\t' read -r at writer body; do
+        [[ -n $at && $at > $since && $body == FLAG:* ]] || continue
+        answered=0
+        while IFS=$'\t' read -r reply_at reply_writer reply_body; do
+            [[ $reply_at > $at && $reply_writer == "$me" && $reply_body != FLAG:* ]] && answered=1
+        done <<<"$notes"
+        ((answered)) || emit "FLAG    #$n from $writer: \"$body\""
+    done <<<"$notes"
+}
 
 out=
 if [[ -f HACKATHON.md ]]; then
@@ -126,13 +138,6 @@ while IFS=$'\t' read -r n title created updated labels author; do
             [[ -n $at && $at > $since && $body == 'Brief updated by the lead'* ]] || continue
             emit "BRIEF   #$n Brief updated by the lead — re-read it"
         done <<<"$notes"
-        if [[ ,$labels, == *,vertical,* ]]; then
-            while IFS=$'\t' read -r at writer body; do
-                [[ -n $at && $at > $since && -n $writer && $writer != "$me" ]] || continue
-                [[ $body == 'Brief updated by the lead'* ]] && continue
-                emit "GRILL   #$n question from $writer: \"$body\""
-            done <<<"$notes"
-        fi
         if [[ ,$labels, == *,task,* && ,$labels, != *,draft,* ]]; then
             removed=$(call api "repos/$repo/issues/$n/timeline" --paginate --jq '.[] | select(.event == "unlabeled" and .label.name == "draft") | .created_at') || exit 1
             while read -r at; do
@@ -141,6 +146,14 @@ while IFS=$'\t' read -r n title created updated labels author; do
                 break
             done <<<"$removed"
         fi
+    fi
+    if [[ ,$labels, == *,vertical,* ]]; then
+        flags "$n" || exit 1
+        children=$(call api "repos/$repo/issues/$n/sub_issues" --paginate --jq '.[] | .number') || exit 1
+        while read -r child; do
+            [[ -n $child ]] || continue
+            flags "$child" || exit 1
+        done <<<"$children"
     fi
     if [[ $created > $since && ,$labels, == *,task,* ]]; then
         emit "NEW     #$n assigned to you: \"$title\""
@@ -151,10 +164,31 @@ if ((lead)); then
     verticals=$(issue_rows --label vertical) || exit 1
     while IFS=$'\t' read -r v _; do
         [[ -n $v ]] || continue
-        subs=$(call api "repos/$repo/issues/$v/sub_issues" --paginate --jq '.[] | select(.state == "open") | [.number, .title, .created_at, ([.labels[].name] | join(",")), .user.login] | @tsv') || exit 1
-        while IFS=$'\t' read -r n title created labels author; do
-            [[ -n $n && $created > $since && ,$labels, == *,draft,* ]] || continue
-            emit "DRAFT   #$n in #$v by $author: \"$title\""
+        subs=$(call api "repos/$repo/issues/$v/sub_issues" --paginate --jq '.[] | [.number, .title, .created_at, .updated_at, (.closed_at // "-"), (.state_reason // "-"), .state, ([.labels[].name] | join(",")), .user.login] | @tsv') || exit 1
+        while IFS=$'\t' read -r n title created updated closed reason issue_state labels author; do
+            [[ -n $n ]] || continue
+            if [[ $created > $since ]]; then
+                if [[ ,$labels, == *,draft,* ]]; then
+                    emit "DRAFT   #$n in #$v by $author: \"$title\""
+                else
+                    emit "NEW     #$n in #$v by $author: \"$title\""
+                fi
+            fi
+            if [[ $closed > $since ]]; then
+                [[ $reason != - ]] || reason=completed
+                emit "CLOSED  #$n in #$v by $author: \"$title\" ($reason)"
+            elif [[ ( $created < $since || $created == "$since" ) && $issue_state == open && $updated > $since ]]; then
+                if [[ ,$labels, == *,draft,* ]]; then
+                    added=$(call api "repos/$repo/issues/$n/timeline" --paginate --jq '.[] | select(.event == "labeled" and .label.name == "draft") | .created_at') || exit 1
+                    while read -r at; do
+                        if [[ -n $at && $at > $since ]]; then
+                            emit "DRAFT   #$n in #$v by $author: \"$title\""
+                            continue 2
+                        fi
+                    done <<<"$added"
+                fi
+                emit "CHANGED #$n in #$v by $author: \"$title\""
+            fi
         done <<<"$subs"
     done <<<"$verticals"
 fi

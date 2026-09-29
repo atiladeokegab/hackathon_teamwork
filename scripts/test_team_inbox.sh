@@ -59,7 +59,8 @@ elif a[:2] == ['issue', 'list']:
             i.get('updatedAt', ''), ','.join(i.get('labels', [])), i.get('author', ''))
 elif a[0] == 'api' and a[1].endswith('/sub_issues'):
     for r in read(f"sub-{a[1].split('/')[-2]}.json"):
-        row(*r)
+        if a[a.index('--jq') + 1] == '.[] | .number': row(r[0])
+        else: row(*r)
 elif a[0] == 'api' and a[1].endswith('/timeline'):
     for r in read(f"timeline-{a[1].split('/')[-2]}.json"):
         print(r)
@@ -239,11 +240,31 @@ cat >"$tmp/data/issues.json" <<'JSON'
 [{"number":30,"title":"Parse: read messy receipts","createdAt":"2026-09-29T11:00:00Z","updatedAt":"2026-09-29T12:06:00Z","labels":["vertical"],"assignees":["me"],"author":"lead"}]
 JSON
 cat >"$tmp/data/issue-30.json" <<'JSON'
-{"comments":[{"createdAt":"2026-09-29T11:59:00Z","author":"lead","body":"old question"},{"createdAt":"2026-09-29T12:06:00Z","author":"me","body":"my answer"},{"createdAt":"2026-09-29T12:07:00Z","author":"lead","body":"Does #31 cover VAT lines?\nThanks"}]}
+{"comments":[{"createdAt":"2026-09-29T11:59:00Z","author":"lead","body":"FLAG: old question"},{"createdAt":"2026-09-29T12:06:00Z","author":"me","body":"my answer"},{"createdAt":"2026-09-29T12:07:00Z","author":"me","body":"FLAG: Does #31 cover VAT lines?\nThanks"}]}
 JSON
 printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
 run_inbox
-check grill_since 'GRILL   #30 question from lead: "Does #31 cover VAT lines?"'
+check flag_same_account 'FLAG    #30 from me: "FLAG: Does #31 cover VAT lines?"'
+
+cat >"$tmp/data/issue-30.json" <<'JSON'
+{"comments":[{"createdAt":"2026-09-29T12:07:00Z","author":"me","body":"FLAG: Fix VAT"},{"createdAt":"2026-09-29T12:08:00Z","author":"me","body":"Fixed VAT"}]}
+JSON
+printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox
+check flag_answered ''
+
+cat >"$tmp/data/sub-30.json" <<'JSON'
+[[36,"Child task","2026-09-29T11:00:00Z","2026-09-29T12:09:00Z","-","-","open","task","alice"]]
+JSON
+cat >"$tmp/data/issues.json" <<'JSON'
+[{"number":30,"title":"Parse: read messy receipts","createdAt":"2026-09-29T11:00:00Z","updatedAt":"2026-09-29T11:00:00Z","labels":["vertical"],"assignees":["me"],"author":"lead"}]
+JSON
+cat >"$tmp/data/issue-36.json" <<'JSON'
+{"comments":[{"createdAt":"2026-09-29T12:09:00Z","author":"me","body":"FLAG: Keep inside Files"}]}
+JSON
+printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox
+check flag_on_child 'FLAG    #36 from me: "FLAG: Keep inside Files"'
 
 reset_case
 cat >"$tmp/data/issues.json" <<'JSON'
@@ -263,13 +284,28 @@ cat >"$tmp/data/issues.json" <<'JSON'
 [{"number":30,"title":"Parse vertical","createdAt":"2026-09-29T11:00:00Z","updatedAt":"2026-09-29T12:06:00Z","labels":["vertical"],"assignees":["alice"],"author":"lead"}]
 JSON
 cat >"$tmp/data/sub-30.json" <<'JSON'
-[[33,"Parse dates","2026-09-29T12:05:00Z","task,draft","alice"],[34,"Approved one","2026-09-29T12:05:00Z","task","alice"],[35,"Old draft","2026-09-29T11:30:00Z","task,draft","alice"]]
+[[33,"Parse dates","2026-09-29T12:05:00Z","2026-09-29T12:05:00Z","-","-","open","task,draft","alice"],[34,"Approved one","2026-09-29T12:05:00Z","2026-09-29T12:05:00Z","-","-","open","task","alice"],[35,"Old draft","2026-09-29T11:30:00Z","2026-09-29T11:30:00Z","-","-","open","task,draft","alice"]]
 JSON
 printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
 run_inbox --lead
-check lead_drafts 'DRAFT   #33 in #30 by alice: "Parse dates"'
+check lead_new_and_draft $'DRAFT   #33 in #30 by alice: "Parse dates"\nNEW     #34 in #30 by alice: "Approved one"'
 run_inbox
 check no_drafts_without_lead ''
+
+reset_case
+cat >"$tmp/data/issues.json" <<'JSON'
+[{"number":30,"title":"Parse vertical","createdAt":"2026-09-29T11:00:00Z","updatedAt":"2026-09-29T12:06:00Z","labels":["vertical"],"assignees":["alice"],"author":"lead"}]
+JSON
+cat >"$tmp/data/sub-30.json" <<'JSON'
+[[36,"Revised","2026-09-29T11:00:00Z","2026-09-29T12:06:00Z","-","-","open","task","alice"],[37,"New closed","2026-09-29T12:01:00Z","2026-09-29T12:03:00Z","2026-09-29T12:03:00Z","not_planned","closed","task","alice"],[38,"Old closed","2026-09-29T11:00:00Z","2026-09-29T12:04:00Z","2026-09-29T12:04:00Z","-","closed","task","alice"],[39,"New draft","2026-09-29T11:00:00Z","2026-09-29T12:07:00Z","-","-","open","task,draft","alice"]]
+JSON
+printf '["2026-09-29T11:30:00Z","2026-09-29T12:07:00Z"]' >"$tmp/data/timeline-39.json"
+printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox --lead
+check lead_changes_closures $'CHANGED #36 in #30 by alice: "Revised"\nNEW     #37 in #30 by alice: "New closed"\nCLOSED  #37 in #30 by alice: "New closed" (not_planned)\nCLOSED  #38 in #30 by alice: "Old closed" (completed)\nDRAFT   #39 in #30 by alice: "New draft"'
+printf '2026-09-29T12:08:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox --lead
+check lead_events_once ''
 
 if ((failed)); then printf '%d failed\n' "$failed"; exit 1; fi
 printf 'all team-inbox tests passed\n'
