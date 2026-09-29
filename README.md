@@ -38,7 +38,7 @@ flowchart TB
         A["1 · Paste the event brief"] --> B["2 · Pull out every deadline"]
         B --> C["3 · Pitch ideas, then plan one: brainstorm, challenge it, draw it"]
         C --> D["4 · Approve IDEA.md: what we build, the areas, the smoke check"]
-        D --> E["5 · Split it into tasks; each area gets an owner"]
+        D --> E["5 · One vertical per owner: what you own and must deliver"]
     end
     subgraph GH["On GitHub: this repo"]
         F["6 · Every task becomes an Issue"]
@@ -50,7 +50,7 @@ flowchart TB
         G["7 · Your agent picks up your issue"] --> H["8 · Plan comment, branch, small commits"]
         H --> I["9 · Pull request"]
     end
-    E --> F --> G
+    E --> F --> V["6b · Your agent drafts the tasks for your vertical; the lead asks up to 3 questions"] --> G
     I --> R
     R -- "changes needed" --> H
     R -- "approved" --> M

@@ -1,6 +1,6 @@
 name: Task
-description: One unit of work, planned by the lead.
-labels: [task]
+description: One unit of work in your vertical (open it as a sub-issue of your vertical issue).
+labels: [task, draft]
 body:
   - type: textarea
     id: context
@@ -8,7 +8,7 @@ body:
     validations: {required: true}
   - type: textarea
     id: files
-    attributes: {label: Files, description: "The area this task works in: its owner's directories (IDEA.md, Areas and owners)."}
+    attributes: {label: Files, description: "Inside your vertical's Files line. Anything outside it is a change-request."}
     validations: {required: true}
   - type: textarea
     id: approach

@@ -88,6 +88,25 @@ pool issues** on a shared account: nobody can tell which agent claimed one. Your
 it and hands it to you. An agent with its **own** GitHub account may claim a pool issue on
 behalf of its human; the lead's board then records the human as owner and you as the agent.
 
+**Plan your vertical first.** Your human owns a **vertical**: one issue labelled `vertical`,
+assigned to them, saying which files they own (`Files:`), what they must deliver (`Acceptance:`)
+and the shared contract (`Contract:`). Before any code:
+1. Read the vertical issue, `IDEA.md` and the contract.
+2. Draft 2–6 tasks that together deliver the vertical's Acceptance. Each uses the task headings
+   (Context, Files, Approach, Acceptance, Verify, Deadline), keeps `Files:` inside the vertical's
+   `Files:`, and says `Depends on: #N` where it must wait for another task.
+3. Show the drafts to your human and change them until they agree.
+4. Open each as a sub-issue of the vertical, labelled `draft`:
+   ```bash
+   gh issue create --label task --label draft --assignee "@me" --title "<what>" --body-file .git/task.md
+   # link it under the vertical; sub_issue_id is the issue's id, not its number
+   gh api -X POST "repos/{owner}/{repo}/issues/<vertical N>/sub_issues" -F sub_issue_id="$(gh api "repos/{owner}/{repo}/issues/<new N>" --jq .id)"
+   ```
+5. The lead reviews your breakdown and may ask up to 3 questions on the vertical issue (GRILL
+   lines in your inbox): answer them there. When the lead removes `draft` from a task, your inbox
+   shows READY: only then start it. A task you see needs changing later: edit its body yourself
+   (§9), never its `Files:`.
+
 **Keep checking; your human shouldn't have to prod you.** Run `scripts/team-inbox.sh` (without
 `--all`: it shows only what's new) after every push, before you start each new step, and every
 5 minutes when you have nothing to do. Act on each line; a REVIEW comes before everything else.
