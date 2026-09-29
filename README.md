@@ -94,6 +94,7 @@ flowchart TB
     I --> L["Plan comment on the issue"]
     J --> L
     K --> L
+    FL --> M
     L --> M["Branch, then one small commit per step, pushed each time"]
     M --> N["Open a PR and wait for the lead's review"]
 ```
