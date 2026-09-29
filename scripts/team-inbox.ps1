@@ -1,4 +1,4 @@
-param([switch]$All, [string]$Agent)
+param([switch]$All, [switch]$Lead, [string]$Agent)
 $ErrorActionPreference = 'Stop'
 
 function Gh([string[]]$Arguments) {
@@ -104,9 +104,36 @@ try {
                     $lines.Add("BRIEF   #$($issue.number) Brief updated by the lead — re-read it")
                 }
             }
+            $names = @($issue.labels | ForEach-Object { $_.name })
+            if ($names -contains 'vertical') {
+                foreach ($comment in (Comments $issue.number)) {
+                    if (!$comment -or !$comment.createdAt -or !$comment.author.login) { continue }
+                    if ([DateTimeOffset]::Parse($comment.createdAt) -le $since -or $comment.author.login -eq $me) { continue }
+                    if ($comment.body -like 'Brief updated by the lead*') { continue }
+                    $lines.Add("GRILL   #$($issue.number) question from $($comment.author.login): `"$(FirstLine $comment.body)`"")
+                }
+            }
+            if ($names -contains 'task' -and $names -notcontains 'draft') {
+                # ponytail: first 100 timeline events only; a hackathon task never gets near that.
+                $events = @(GhJson @('api', "repos/$repo/issues/$($issue.number)/timeline?per_page=100"))
+                $removed = @($events | Where-Object { $_.event -eq 'unlabeled' -and $_.label.name -eq 'draft' -and [DateTimeOffset]::Parse($_.created_at) -gt $since })
+                if ($removed.Count) { $lines.Add("READY   #$($issue.number) draft removed: build it") }
+            }
         }
         if ([DateTimeOffset]::Parse($issue.createdAt) -gt $since -and (@($issue.labels | ForEach-Object { $_.name }) -contains 'task')) {
             $lines.Add("NEW     #$($issue.number) assigned to you: `"$($issue.title)`"")
+        }
+    }
+
+    if ($Lead) {
+        foreach ($vertical in (Issues @('--label', 'vertical'))) {
+            if (!$vertical) { continue }
+            $subs = @(GhJson @('api', "repos/$repo/issues/$($vertical.number)/sub_issues?per_page=100"))
+            foreach ($sub in $subs) {
+                if (!$sub -or $sub.state -ne 'open' -or [DateTimeOffset]::Parse($sub.created_at) -le $since) { continue }
+                if (@($sub.labels | ForEach-Object { $_.name }) -notcontains 'draft') { continue }
+                $lines.Add("DRAFT   #$($sub.number) in #$($vertical.number) by $($sub.user.login): `"$($sub.title)`"")
+            }
         }
     }
 

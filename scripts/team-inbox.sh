@@ -5,9 +5,11 @@ shopt -s nocasematch
 since=1970-01-01T00:00:00Z
 agent=
 all=0
+lead=0
 while (($#)); do
     case $1 in
         --all) all=1; shift ;;
+        --lead) lead=1; shift ;;
         --agent) agent=${2:?--agent needs a name}; shift 2 ;;
         *) printf 'inbox: unknown option: %s\n' "$1" >&2; exit 1 ;;
     esac
@@ -124,11 +126,38 @@ while IFS=$'\t' read -r n title created updated labels author; do
             [[ -n $at && $at > $since && $body == 'Brief updated by the lead'* ]] || continue
             emit "BRIEF   #$n Brief updated by the lead — re-read it"
         done <<<"$notes"
+        if [[ ,$labels, == *,vertical,* ]]; then
+            while IFS=$'\t' read -r at writer body; do
+                [[ -n $at && $at > $since && -n $writer && $writer != "$me" ]] || continue
+                [[ $body == 'Brief updated by the lead'* ]] && continue
+                emit "GRILL   #$n question from $writer: \"$body\""
+            done <<<"$notes"
+        fi
+        if [[ ,$labels, == *,task,* && ,$labels, != *,draft,* ]]; then
+            removed=$(call api "repos/$repo/issues/$n/timeline" --paginate --jq '.[] | select(.event == "unlabeled" and .label.name == "draft") | .created_at') || exit 1
+            while read -r at; do
+                [[ -n $at && $at > $since ]] || continue
+                emit "READY   #$n draft removed: build it"
+                break
+            done <<<"$removed"
+        fi
     fi
     if [[ $created > $since && ,$labels, == *,task,* ]]; then
         emit "NEW     #$n assigned to you: \"$title\""
     fi
 done <<<"$owned"
+
+if ((lead)); then
+    verticals=$(issue_rows --label vertical) || exit 1
+    while IFS=$'\t' read -r v _; do
+        [[ -n $v ]] || continue
+        subs=$(call api "repos/$repo/issues/$v/sub_issues" --paginate --jq '.[] | select(.state == "open") | [.number, .title, .created_at, ([.labels[].name] | join(",")), .user.login] | @tsv') || exit 1
+        while IFS=$'\t' read -r n title created labels author; do
+            [[ -n $n && $created > $since && ,$labels, == *,draft,* ]] || continue
+            emit "DRAFT   #$n in #$v by $author: \"$title\""
+        done <<<"$subs"
+    done <<<"$verticals"
+fi
 
 printf '%s' "$out"
 printf '%s\n' "$started" >"$state"

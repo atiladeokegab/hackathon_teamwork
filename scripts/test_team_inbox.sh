@@ -57,6 +57,12 @@ elif a[:2] == ['issue', 'list']:
             continue
         row(i['number'], i.get('title', ''), i.get('createdAt', ''),
             i.get('updatedAt', ''), ','.join(i.get('labels', [])), i.get('author', ''))
+elif a[0] == 'api' and a[1].endswith('/sub_issues'):
+    for r in read(f"sub-{a[1].split('/')[-2]}.json"):
+        row(*r)
+elif a[0] == 'api' and a[1].endswith('/timeline'):
+    for r in read(f"timeline-{a[1].split('/')[-2]}.json"):
+        print(r)
 elif a[:2] == ['issue', 'view']:
     for x in (read(f'issue-{a[2]}.json') or {}).get('comments', []):
         row(x.get('createdAt', ''), x.get('author', ''), first(x.get('body')))
@@ -69,7 +75,7 @@ chmod +x "$tmp/bin/gh"
 reset_case() {
     printf '[]' >"$tmp/data/prs.json"
     printf '[]' >"$tmp/data/issues.json"
-    rm -f "$tmp/data"/pr-*.json "$tmp/data"/issue-*.json "$tmp/data/fail" "$tmp/repo/.git/team-inbox.last"
+    rm -f "$tmp/data"/pr-*.json "$tmp/data"/issue-*.json "$tmp/data"/sub-*.json "$tmp/data"/timeline-*.json "$tmp/data/fail" "$tmp/repo/.git/team-inbox.last"
     printf '| code freeze | x | 2099-01-01T00:00Z |\n' >"$tmp/repo/HACKATHON.md"
 }
 run_inbox() {
@@ -227,6 +233,43 @@ JSON
 printf 'issue view\n' >"$tmp/data/fail"
 run_inbox
 if [[ $status == 1 && ! -s "$tmp/out" && $(cat "$tmp/err") == 'inbox: GitHub unavailable' && ! -e "$tmp/repo/.git/team-inbox.last" ]]; then printf 'ok late_gh_failure\n'; else printf 'FAIL late_gh_failure\n'; failed=$((failed + 1)); fi
+
+reset_case
+cat >"$tmp/data/issues.json" <<'JSON'
+[{"number":30,"title":"Parse: read messy receipts","createdAt":"2026-09-29T11:00:00Z","updatedAt":"2026-09-29T12:06:00Z","labels":["vertical"],"assignees":["me"],"author":"lead"}]
+JSON
+cat >"$tmp/data/issue-30.json" <<'JSON'
+{"comments":[{"createdAt":"2026-09-29T11:59:00Z","author":"lead","body":"old question"},{"createdAt":"2026-09-29T12:06:00Z","author":"me","body":"my answer"},{"createdAt":"2026-09-29T12:07:00Z","author":"lead","body":"Does #31 cover VAT lines?\nThanks"}]}
+JSON
+printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox
+check grill_since 'GRILL   #30 question from lead: "Does #31 cover VAT lines?"'
+
+reset_case
+cat >"$tmp/data/issues.json" <<'JSON'
+[{"number":31,"title":"Parse totals","createdAt":"2026-09-29T11:50:00Z","updatedAt":"2026-09-29T12:08:00Z","labels":["task"],"assignees":["me"],"author":"me"},{"number":32,"title":"Still draft","createdAt":"2026-09-29T11:50:00Z","updatedAt":"2026-09-29T12:08:00Z","labels":["task","draft"],"assignees":["me"],"author":"me"}]
+JSON
+printf '["2026-09-29T12:08:00Z"]' >"$tmp/data/timeline-31.json"
+printf '[]' >"$tmp/data/timeline-32.json"
+printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox
+check ready_after_draft_removed 'READY   #31 draft removed: build it'
+printf '2026-09-29T12:09:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox
+check ready_only_once ''
+
+reset_case
+cat >"$tmp/data/issues.json" <<'JSON'
+[{"number":30,"title":"Parse vertical","createdAt":"2026-09-29T11:00:00Z","updatedAt":"2026-09-29T12:06:00Z","labels":["vertical"],"assignees":["alice"],"author":"lead"}]
+JSON
+cat >"$tmp/data/sub-30.json" <<'JSON'
+[[33,"Parse dates","2026-09-29T12:05:00Z","task,draft","alice"],[34,"Approved one","2026-09-29T12:05:00Z","task","alice"],[35,"Old draft","2026-09-29T11:30:00Z","task,draft","alice"]]
+JSON
+printf '2026-09-29T12:00:00Z\n' >"$tmp/repo/.git/team-inbox.last"
+run_inbox --lead
+check lead_drafts 'DRAFT   #33 in #30 by alice: "Parse dates"'
+run_inbox
+check no_drafts_without_lead ''
 
 if ((failed)); then printf '%d failed\n' "$failed"; exit 1; fi
 printf 'all team-inbox tests passed\n'
