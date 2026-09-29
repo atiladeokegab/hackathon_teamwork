@@ -88,6 +88,12 @@ pool issues** on a shared account: nobody can tell which agent claimed one. Your
 it and hands it to you. An agent with its **own** GitHub account may claim a pool issue on
 behalf of its human; the lead's board then records the human as owner and you as the agent.
 
+**Follow the design.** If your vertical's brief has a `Design:` line, those sections of
+`docs/design.md` are binding: the flow, the screens or commands, the states and the exact words.
+Never edit `docs/design.md` unless your human is the designer. If the design looks wrong or
+missing for your task, open a change-request (§7) addressed to the designer and keep building on
+the design as written meanwhile.
+
 **Plan your vertical first.** Your human owns a **vertical**: one issue labelled `vertical`,
 assigned to them, saying which files they own (`Files:`), what they must deliver (`Acceptance:`)
 and the shared contract (`Contract:`). Before any code:
