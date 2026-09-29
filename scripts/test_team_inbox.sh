@@ -131,10 +131,15 @@ run_inbox
 check answered 'ANSWER  #12 answered by lead: "Use blue"'
 
 cat >"$tmp/data/issue-12.json" <<'JSON'
+{"comments":[{"createdAt":"2026-09-29T12:05:00Z","author":"lead","body":"@alice this is waiting on you"}]}
+JSON
+run_inbox --all
+check mentioned_waiting_comment ''
+cat >"$tmp/data/issue-12.json" <<'JSON'
 {"comments":[{"createdAt":"2026-09-29T12:05:00Z","author":"lead","body":"this is waiting on you"}]}
 JSON
 run_inbox --all
-check waiting_comment ''
+check bare_waiting_comment ''
 
 reset_case
 cat >"$tmp/data/issues.json" <<'JSON'

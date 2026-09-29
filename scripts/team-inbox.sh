@@ -109,7 +109,7 @@ while IFS=$'\t' read -r n title created updated labels author; do
     notes=$(comments "$n") || exit 1
     while IFS=$'\t' read -r at writer body; do
         [[ -n $at && $at > $since && -n $writer && $writer != "$me" ]] || continue
-        [[ $body == 'this is waiting on you' ]] && continue
+        [[ $body == *'this is waiting on you'* ]] && continue
         emit "ANSWER  #$n answered by $writer: \"$body\""
     done <<<"$notes"
 done <<<"$authored"

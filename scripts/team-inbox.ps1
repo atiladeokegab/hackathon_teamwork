@@ -91,7 +91,7 @@ try {
             if (!$comment -or !$comment.createdAt -or !$comment.author.login) { continue }
             if ([DateTimeOffset]::Parse($comment.createdAt) -le $since -or $comment.author.login -eq $me) { continue }
             $body = FirstLine $comment.body
-            if ($body.Trim() -eq 'this is waiting on you') { continue }
+            if ($body -like '*this is waiting on you*') { continue }
             $lines.Add("ANSWER  #$($issue.number) answered by $($comment.author.login): `"$body`"")
         }
     }
