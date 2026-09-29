@@ -38,9 +38,13 @@ Everything you build belongs to a GitHub Issue. If your human asks for something
 has no issue (for example, "just build the whole frontend"), don't build it. Say it
 needs an issue, and offer to open a change-request (§7) so the lead can plan it.
 
-**Start of every session: finish what's in review first.**
+**Start of every session: ask the inbox, then finish what's in review first.**
 ```bash
-gh pr list --author "@me" --state open
+scripts/team-inbox.sh --all          # PowerShell: scripts/team-inbox.ps1 -All
+```
+It prints one line per thing waiting for you (REVIEW, QUESTION, ANSWER, BRIEF, NEW) and nothing
+else. On the lead's shared account add `--agent <your name>`. For a REVIEW line, read the PR:
+```bash
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
 Read the reviews' text, not only `reviewDecision`: the lead's review on a PR from the lead's
@@ -83,6 +87,13 @@ touching a PR from `"@me"`, check that the issue it closes carries your label. *
 pool issues** on a shared account: nobody can tell which agent claimed one. Your human claims
 it and hands it to you. An agent with its **own** GitHub account may claim a pool issue on
 behalf of its human; the lead's board then records the human as owner and you as the agent.
+
+**Keep checking; your human shouldn't have to prod you.** Run `scripts/team-inbox.sh` (without
+`--all`: it shows only what's new) after every push, before you start each new step, and every
+5 minutes when you have nothing to do. Act on each line; a REVIEW comes before everything else.
+With nothing to do, keep checking every 5 minutes until submit, and take pool work (below) if
+there is any. After code freeze, only fixes; after submit, stop and tell your human. Nobody on
+the team will ask your human to pass messages to you: everything you need arrives on GitHub.
 
 **One issue at a time.** Take the next one when this one has an open PR and every change
 a review asked for is pushed. Before you take it, run the questions checks (§8) again.
@@ -167,10 +178,13 @@ add `--label agent:<your name>`.
 
 **Don't wait.** Build on your guess, and list it under Assumptions in your PR.
 
-**A question asked of you** (the session-start check): skip any that already carries your answer
-(it's waiting for the asker). For the rest, show it to your human with a draft
-answer from your area. They edit or approve it; then post it as a comment and leave the issue
-open for the asker:
+**A question asked of you** (a QUESTION line): skip any that already carries your answer
+(it's waiting for the asker). **Answer it yourself** when the answer is already settled by the
+issue's brief, `IDEA.md`, the shared contract, or an earlier decision your human made that still
+holds: quote the line, or link that earlier answer ("Answered from #2's brief: 'TOTAL beats
+Subtotal'"), and tell your human in one line what you answered. Anything that needs a real
+choice goes to your human as a draft answer from your area; they edit or approve it. Either way,
+post it as a comment and leave the issue open for the asker (your human can overrule by commenting):
 ```bash
 gh issue comment <N> --body-file .git/answer.md
 ```

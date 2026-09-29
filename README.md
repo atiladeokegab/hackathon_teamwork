@@ -85,7 +85,7 @@ flowchart TB
     D --> E["gh repo clone this repo"]
     E --> F["Open your AI tool in the folder"]
     F --> G["Say: Read AGENTS.md, then pick up my issue"]
-    G --> H{"Your agent checks"}
+    G --> H{"Your agent runs scripts/team-inbox.sh"}
     H -- "a PR of yours has review comments" --> I["Fix those first"]
     H -- "a question for you" --> Q["Show you it, with a draft answer"]
     H -- "you have an assigned issue" --> J["Take it, ready ones first"]
@@ -194,6 +194,7 @@ Every one of these happened for real while this kit was tested.
 | `gh issue list --assignee @me` ignores the filter (PowerShell) | PowerShell reads `@me` as its own syntax | Quote it: `"@me"` |
 | `fatal: Need to specify how to reconcile divergent branches` | Plain `git pull` refuses once your branch and `integration` have both moved | `git pull --no-rebase origin integration`, fix conflicts in your area, commit, push |
 | `GraphQL: Projects (classic) is being deprecated` | `gh issue view` / `gh pr view` without `--json`, on gh older than 2.77 | Use the `--json` form from AGENTS.md, or update gh |
+| `API rate limit exceeded` from `team-inbox.sh` | Checking far more often than every 5 minutes | Check after each push and every 5 minutes, not in a tight loop |
 | `GH006: Protected branch update failed` | You pushed to `integration` or `main` | Push to your issue's branch and open a PR |
 | "Waiting on code owner review" | The lead hasn't approved your PR yet (or a push cancelled the approval) | Nothing: wait for the lead's review |
 | Your plan comment shows up garbled | Windows PowerShell's `>` wrote the file as UTF-16 | Write it with your editor, or `Set-Content -Encoding utf8` |
