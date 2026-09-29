@@ -27,7 +27,7 @@ New to this? Read the rest of this page once. It takes ten minutes and saves hou
 
 ## How this works
 
-The lead plans the whole project first, on their own PC, with their planning agent Zeus.
+The lead plans the whole project first, on their own PC, usually with an AI planning agent.
 Only then is the work split into small tasks, and each task becomes an Issue in this
 repo. You and your AI agent pick up your issues one at a time. Nobody builds the whole
 thing in one prompt.
@@ -42,7 +42,7 @@ flowchart TB
     end
     subgraph GH["On GitHub: this repo"]
         F["6 · Every task becomes an Issue"]
-        R{"10 · Zeus reviews"}
+        R{"10 · The lead reviews"}
         M["11 · Merged into integration, issue closed"]
         S{"12 · Smoke check"}
     end
@@ -63,19 +63,15 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    LEAD(["Lead"]) -- "approves the plan and every merge" --> ZEUS["Zeus: the lead's planning agent"]
-    ZEUS -- "writes the issues" --> REPO[("This repo")]
-    ZEUS -- "reviews and merges PRs" --> REPO
-    PRO["Prometheus: the lead's builder agent"] -- "builds assigned issues" --> REPO
+    LEAD(["Lead and their agents"]) -- "writes the issues" --> REPO[("This repo")]
+    LEAD -- "reviews and merges every PR" --> REPO
     YOU(["You"]) -- "drive" --> AGENT["Your AI agent"]
     AGENT -- "reads AGENTS.md, opens PRs" --> REPO
 ```
 
 | Who | Does | Never does |
 |---|---|---|
-| **Lead** | Agrees the idea, approves the plan, the owners and every merge | — |
-| **Zeus** (lead's agent) | Plans, writes every issue, reviews every PR, merges | Builds in a teammate's area |
-| **Prometheus** (lead's agent) | Builds the issues assigned to it | Takes pool issues |
+| **Lead** | Agrees the idea, writes every issue, reviews every PR and merges, often through their own agents (named in [HACKATHON.md](HACKATHON.md)) | Builds in a teammate's area |
 | **You** | Own your area; tell your agent what to pick up; check its work | Merge; edit someone else's area |
 | **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges; builds anything that has no issue |
 
@@ -98,7 +94,7 @@ flowchart TB
     J --> L
     K --> L
     L --> M["Branch, then one small commit per step, pushed each time"]
-    M --> N["Open a PR and wait for Zeus's review"]
+    M --> N["Open a PR and wait for the lead's review"]
 ```
 
 Your job while the agent works: read its plan comment before it starts, and glance at
@@ -119,9 +115,9 @@ stateDiagram-v2
     Blocked --> Building: lead re-plans
     Building --> InReview: PR opened
     InReview --> Building: changes requested
-    InReview --> Approved: Zeus approves
+    InReview --> Approved: the lead approves
     Approved --> InReview: a new push cancels the approval
-    Approved --> Merged: Zeus merges into integration
+    Approved --> Merged: the lead merges into integration
     Merged --> Done: smoke green, main moves forward
     Merged --> Building: smoke red: merge reverted, issue reopened
     Done --> [*]
@@ -139,29 +135,29 @@ sequenceDiagram
     actor You
     participant Agent as Your agent
     participant GH as GitHub
-    participant Zeus
+    participant Lead
     You->>Agent: Read AGENTS.md, then pick up my issue
     Agent->>GH: Plan comment on the issue
     loop one step at a time
         Agent->>GH: Commit and push to your branch
     end
     Agent->>GH: Open the PR, which says Closes the issue
-    Zeus->>GH: Review against the issue and IDEA.md
+    Lead->>GH: Review against the issue and IDEA.md
     alt changes needed
         GH-->>Agent: Review comments
         Agent->>GH: Push the fix
-        Zeus->>GH: Review again
+        Lead->>GH: Review again
     end
-    Zeus->>GH: Approve
+    Lead->>GH: Approve
     Note over GH: Any push now cancels the approval
-    Zeus->>GH: Merge
+    Lead->>GH: Merge
     GH-->>You: Issue closed, task done on the lead's board
 ```
 
 GitHub enforces the important part. Teammates can't push straight to `integration` or `main`;
-only the lead's account can, which is how Zeus moves `main` and reverts. A PR can't be
+only the lead's account can, which is how the lead moves `main` and reverts. A PR can't be
 merged until the lead has approved it. A push after approval cancels the approval, so
-what gets merged is exactly what was reviewed. Zeus merges PRs into `integration`,
+what gets merged is exactly what was reviewed. The lead merges PRs into `integration`,
 runs the smoke check, and moves `main` only when it's green: `main` is always a working
 product.
 
@@ -184,7 +180,7 @@ product.
 | Question outside your area: ask its owner, keep building on your guess | The expert answers in minutes; nobody sits blocked |
 | Never edit an issue body; comment instead | The lead's board owns the text, and would overwrite your edit |
 | PR from the template: plan link ticked, Impact, how you checked | The reviewer knows what to look at in one glance |
-| Never merge; don't push after approval | Zeus merges; a push after approval cancels it |
+| Never merge; don't push after approval | The lead merges; a push after approval cancels it |
 | Never commit secrets or agent files | The repo is public; a leaked key must be revoked, not just deleted |
 
 ## Troubleshooting
@@ -199,7 +195,7 @@ Every one of these happened for real while this kit was tested.
 | `fatal: Need to specify how to reconcile divergent branches` | Plain `git pull` refuses once your branch and `integration` have both moved | `git pull --no-rebase origin integration`, fix conflicts in your area, commit, push |
 | `GraphQL: Projects (classic) is being deprecated` | `gh issue view` / `gh pr view` without `--json`, on gh older than 2.77 | Use the `--json` form from AGENTS.md, or update gh |
 | `GH006: Protected branch update failed` | You pushed to `integration` or `main` | Push to your issue's branch and open a PR |
-| "Waiting on code owner review" | The lead hasn't approved your PR yet (or a push cancelled the approval) | Nothing: wait for Zeus's review |
+| "Waiting on code owner review" | The lead hasn't approved your PR yet (or a push cancelled the approval) | Nothing: wait for the lead's review |
 | Your plan comment shows up garbled | Windows PowerShell's `>` wrote the file as UTF-16 | Write it with your editor, or `Set-Content -Encoding utf8` |
 | The pool search comes back empty right after the lead adds work | GitHub's search index lags a few seconds | Wait a minute and search again |
 | `gh issue develop` says the branch already exists | A second session on the same issue | `git fetch origin`, then `git branch -r --list "origin/12-*"`, then check that branch out |
@@ -208,16 +204,16 @@ Every one of these happened for real while this kit was tested.
 
 | Word | Meaning here |
 |---|---|
-| **Issue** | One piece of work, a question, or a change-request. A task issue is written by Zeus (or by you, in your own area): context, your area, the approach, how to check it, its deadline |
+| **Issue** | One piece of work, a question, or a change-request. A task issue is written by the lead (or by you, in your own area): context, your area, the approach, how to check it, its deadline |
 | **Pool** | Issues with no owner. Anyone who finishes early takes one |
 | **Branch** | Your own copy of the code for one issue. Named after it, like `12-add-login-form` |
 | **Commit** | One saved step of work, with a message like `feat: login form (#12)` |
 | **Push** | Sending your commits to GitHub so others can see them |
 | **Pull request (PR)** | Asking for your branch to be merged into `integration` |
-| **Review** | Zeus reading your PR against the issue and `IDEA.md`, then approving it or asking for changes |
-| **Merge** | Your branch joining `integration`. Only Zeus does this |
+| **Review** | The lead reading your PR against the issue and `IDEA.md`, then approving it or asking for changes |
+| **Merge** | Your branch joining `integration`. Only the lead does this |
 | **`integration`** | Where every merged PR lands. The default branch |
-| **`main`** | The last version that passed the smoke check. Only Zeus moves it |
+| **`main`** | The last version that passed the smoke check. Only the lead moves it |
 | **CODEOWNERS** | The file that makes the lead's approval required on every PR |
 | **Milestone** | A deadline on GitHub: each issue belongs to `code freeze` or `submit` |
 | **Change-request** | An issue asking the lead to re-plan something outside your area |

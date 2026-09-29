@@ -1,7 +1,8 @@
 # Rules for every AI agent in this repo
 
-You are working in a hackathon team. The lead and their planning agent, Zeus, agreed the
-idea in `IDEA.md` and split it into GitHub Issues. Your human owns some of them. Follow
+You are working in a hackathon team. The lead agreed the idea in `IDEA.md` with the team and
+split it into GitHub Issues. The lead reviews and merges every PR, often through their own
+agents; below, "the lead" means either. Your human owns some of them. Follow
 these rules exactly. They exist so that five people's agents don't overwrite each other
 at 3am.
 
@@ -29,7 +30,7 @@ date -u                                   # macOS, Linux, Git Bash
   `⏰ code freeze in 42 min`.
 - After **code freeze**: no new features. Only bug fixes, demo and submission work.
   If asked for a feature, refuse and say why. GitHub enforces this: after the freeze, the
-  `freeze-gate` check fails on any PR to `integration` that Zeus hasn't labelled `fix`.
+  `freeze-gate` check fails on any PR to `integration` that the lead hasn't labelled `fix`.
 - After **submit**: stop. Don't push anything.
 
 ## 3. Only work on issues
@@ -42,10 +43,10 @@ needs an issue, and offer to open a change-request (§7) so the lead can plan it
 gh pr list --author "@me" --state open
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
-Read the reviews' text, not only `reviewDecision`: Zeus's review on a PR from the lead's
+Read the reviews' text, not only `reviewDecision`: the lead's review on a PR from the lead's
 own account can only be a comment. If a review asked for changes, fix those before
 anything else, on that PR's branch. Never open a second branch or PR for an issue that
-already has one, unless Zeus reverted it (§10).
+already has one, unless the lead reverted it (§10).
 
 Then questions (§8): answer any asked of you, and read the answers to yours.
 ```bash
@@ -53,8 +54,8 @@ gh issue list --label question --mention "@me" --state open --limit 100
 gh issue list --label question --author "@me" --state open --limit 100 --json number,title,comments
 ```
 On the lead's shared account, add `--label agent:<your name>` to the second command.
-Only Zeus runs the first: questions for the lead reach the lead through Zeus. The first
-finds questions that @mention you, assigned or not.
+On the lead's account only the agent that reviews for the lead runs the first: questions for
+the lead reach the lead through it. The first finds questions that @mention you, assigned or not.
 
 Find your work. Tasks are owned by **humans**; an agent works on its human's tasks:
 ```bash
@@ -77,8 +78,7 @@ it. Everyone else removes themselves (`gh issue edit <N> --remove-assignee "@me"
 picks another.
 
 If your human is the lead, you share their GitHub account, so `"@me"` also lists the other
-agents' issues and PRs. Yours are the ones labelled with your agent name (Zeus or
-Prometheus). Leave issues labelled for another agent alone, and their PRs too: before
+agents' issues and PRs. Yours are the ones labelled with your agent name. Leave issues labelled for another agent alone, and their PRs too: before
 touching a PR from `"@me"`, check that the issue it closes carries your label. **Don't take
 pool issues** on a shared account: nobody can tell which agent claimed one. Your human claims
 it and hands it to you. An agent with its **own** GitHub account may claim a pool issue on
@@ -88,7 +88,7 @@ behalf of its human; the lead's board then records the human as owner and you as
 a review asked for is pushed. Before you take it, run the questions checks (§8) again.
 
 ## 4. Plan before you code (no one-shotting)
-Before your first commit on an issue, post a plan as a comment. (Prometheus has no GitHub access: it sends its plan to Zeus, who posts it and sends back the link.) Write it to a file first,
+Before your first commit on an issue, post a plan as a comment. Write it to a file first,
 because multi-line text in a command line breaks in some shells. Create the file with your
 own file-editing tool. In Windows PowerShell don't use `>`: it writes UTF-16 and the
 comment arrives garbled. If you must use the shell there, use
@@ -127,7 +127,7 @@ git checkout <N>-<rest of the name>
   `git pull --no-rebase origin integration` (plain `git pull` refuses when your branch and
   integration have both moved). Fix the conflicts in **your area**, commit, push. If a
   conflict is outside your area, stop and ask the lead.
-- `main` is the last version that passed the smoke check. You never touch it; Zeus moves it.
+- `main` is the last version that passed the smoke check. You never touch it; the lead moves it.
 
 ## 6. Stay in your area
 - Your **area** is the directories `IDEA.md` lists against your name under "Areas and owners".
@@ -163,8 +163,7 @@ gh issue create --label question --assignee <handle> --title "question: <one lin
 The body: `@<handle>`, the question, which issue it's for, and your guess: "I'll use X unless
 you say otherwise." If it fails with `not found` (they haven't accepted the invite yet), run it
 again without `--assignee`: the @mention still notifies them. On the lead's shared account,
-add `--label agent:<your name>`. Prometheus has no GitHub access: it sends the question to Zeus,
-who opens it and relays the answer.
+add `--label agent:<your name>`.
 
 **Don't wait.** Build on your guess, and list it under Assumptions in your PR.
 
@@ -178,7 +177,7 @@ gh issue comment <N> --body-file .git/answer.md
 If the answer means new work in your area, open a `task` issue for it (§6).
 
 **Answers to your questions** (the session-start check lists your open ones with their
-comments). A comment that only says "this is waiting on you" is Zeus's reminder to the owner,
+comments). A comment that only says "this is waiting on you" is the lead's reminder to the owner,
 not an answer. Apply each answer, then close that question with `gh issue close <N>`. If the answer
 differs from your guess, fix it first:
 - your PR is still open: on the same branch (an approved PR: comment first, because a push
@@ -213,17 +212,17 @@ The PR body must have:
 
 Keep PRs small.
 
-PRs go to `integration`, the default base, so there is nothing to type. After Zeus merges,
-it runs the smoke check. If your merge turns it red, Zeus reverts it, reopens your issue and comments the failing
+PRs go to `integration`, the default base, so there is nothing to type. After the lead merges,
+it runs the smoke check. If your merge turns it red, the lead reverts it, reopens your issue and comments the failing
 output there: fix it on the same branch, push, and open a new PR (`gh pr create` again).
 
-**Never merge**, not even your own PR. Zeus reviews every PR against its issue and
+**Never merge**, not even your own PR. The lead reviews every PR against its issue and
 `IDEA.md`, and merges it. Until then the PR is still yours:
 ```bash
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
 Fix what the review asks for on the same branch, and push. A review fix needs no new
-plan: comment on the PR with what you changed. Review fixes come before new work. Once Zeus approves, don't push to that branch again unless asked: a push
+plan: comment on the PR with what you changed. Review fixes come before new work. Once the lead approves, don't push to that branch again unless asked: a push
 cancels the approval.
 
 ## 11. Commits

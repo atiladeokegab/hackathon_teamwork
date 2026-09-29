@@ -29,3 +29,6 @@ date, so this UTC column is the clock, never the milestone.
 | Name | GitHub | Role |
 |---|---|---|
 | <name> | @<handle> | <role> |
+
+The lead's agents: <e.g. "Zeus plans, reviews and merges; Prometheus builds">. When this page
+or a review says "the lead", it may be one of them acting for the lead.
