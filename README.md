@@ -64,14 +64,14 @@ flowchart TB
 ```mermaid
 flowchart LR
     LEAD(["Lead and their agents"]) -- "writes the issues" --> REPO[("This repo")]
-    LEAD -- "reviews and merges every PR" --> REPO
+    LEAD -- "reviews every PR; approved ones merge automatically" --> REPO
     YOU(["You"]) -- "drive" --> AGENT["Your AI agent"]
     AGENT -- "reads AGENTS.md, opens PRs" --> REPO
 ```
 
 | Who | Does | Never does |
 |---|---|---|
-| **Lead** | Agrees the idea, writes every issue, reviews every PR and merges, often through their own agents (named in [HACKATHON.md](HACKATHON.md)) | Builds in a teammate's area |
+| **Lead** | Agrees the idea, writes every issue, and reviews every PR, often through their own agents (named in [HACKATHON.md](HACKATHON.md)). An approved PR is merged automatically within about 5 minutes | Builds in a teammate's area |
 | **You** | Own your area; tell your agent what to pick up; check its work | Merge; edit someone else's area |
 | **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges; builds anything that has no issue |
 
@@ -119,7 +119,7 @@ stateDiagram-v2
     InReview --> Building: changes requested
     InReview --> Approved: the lead approves
     Approved --> InReview: a new push cancels the approval
-    Approved --> Merged: the lead merges into integration
+    Approved --> Merged: merged into integration automatically (within ~5 min)
     Merged --> Done: smoke green, main moves forward
     Merged --> Building: smoke red: merge reverted, issue reopened
     Done --> [*]
@@ -152,16 +152,18 @@ sequenceDiagram
     end
     Lead->>GH: Approve
     Note over GH: Any push now cancels the approval
-    Lead->>GH: Merge
+    Note over GH: Merged automatically within about 5 minutes
     GH-->>You: Issue closed, task done on the lead's board
 ```
 
 GitHub enforces the important part. Teammates can't push straight to `integration` or `main`;
 only the lead's account can, which is how the lead moves `main` and reverts. A PR can't be
 merged until the lead has approved it. A push after approval cancels the approval, so
-what gets merged is exactly what was reviewed. The lead merges PRs into `integration`,
-runs the smoke check, and moves `main` only when it's green: `main` is always a working
-product.
+what gets merged is exactly what was reviewed. Within about 5 minutes of the approval, the
+lead's setup merges the PR into `integration` (one at a time, in dependency order), runs the smoke
+check, and moves `main` only when it's green: `main` is always a working product. If the smoke
+fails, your merge is reverted and your issue reopened with the failing output: fix it on the same
+branch and open a new PR.
 
 ## The rules in one table
 
@@ -182,7 +184,7 @@ product.
 | Question outside your area: ask its owner, keep building on your guess | The expert answers in minutes; nobody sits blocked |
 | Never edit an issue body; comment instead | The lead's board owns the text, and would overwrite your edit |
 | PR from the template: plan link ticked, Impact, how you checked | The reviewer knows what to look at in one glance |
-| Never merge; don't push after approval | The lead merges; a push after approval cancels it |
+| Never merge; don't push after approval | Approved PRs merge automatically; a push after approval cancels the approval |
 | Never commit secrets or agent files | The repo is public; a leaked key must be revoked, not just deleted |
 
 ## Troubleshooting
@@ -217,7 +219,7 @@ Every one of these happened for real while this kit was tested.
 | **Push** | Sending your commits to GitHub so others can see them |
 | **Pull request (PR)** | Asking for your branch to be merged into `integration` |
 | **Review** | The lead reading your PR against the issue and `IDEA.md`, then approving it or asking for changes |
-| **Merge** | Your branch joining `integration`. Only the lead does this |
+| **Merge** | Your branch joining `integration`. Happens automatically once the lead approves; never by you |
 | **`integration`** | Where every merged PR lands. The default branch |
 | **`main`** | The last version that passed the smoke check. Only the lead moves it |
 | **CODEOWNERS** | The file that makes the lead's approval required on every PR |
