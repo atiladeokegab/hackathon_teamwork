@@ -97,13 +97,16 @@ change-request (§7) addressed to the designer and keep building on the design a
 **If your human is the designer**, your first issue is "Design: design.md + clickable mockup".
 Take it before anything else, because everyone's look depends on it:
 1. Ask your human for **references** first: screenshots or sites whose look they want. Describe
-   each one and link it in `docs/design.md`. Never commit someone else's images: this repo is public.
+   each one and link it in `docs/design.md`. Never commit someone else's images, private text or
+   private URLs: this repo is public.
 2. Fill in `docs/design.md` (Flow, Screens and commands, States, Copy, and the look).
 3. Build `docs/mockup/index.html`: one static page, fake data, no build step, that shows every
    screen and every state from §States (a button or link to switch between them), with the
    exact copy.
 4. Show it to your human and change it until they agree, then open the PR (§10). Its deadline is
-   in the brief; if it's late, the team starts on `docs/design.md` alone and the mockup follows.
+   in the brief; if it's late, the team starts on `docs/design.md` alone and the mockup follows:
+   then run `git pull --no-rebase origin integration` first, and your PR adds only the mockup and
+   the refinements your human approved.
 5. After it merges, design changes come to you as change-requests: your human decides, you edit
    `docs/design.md` or `docs/mockup/` in your own PR.
 
@@ -130,7 +133,7 @@ the whole team and the lead can see it and watch it change.
 5. **Changing path is normal.** Add, edit or close your own sub-issues as you learn (close with a
    one-line reason). The same line applies to every change. Never change a sub-issue's `Files:`
    to leave the vertical's `Files:`.
-6. **A FLAG** is the lead's comment on your vertical or one of its sub-issues. If `IDEA.md`, the
+6. **A FLAG** is a comment starting `FLAG:` on your vertical or one of its sub-issues. If `IDEA.md`, the
    contract or the design decides it, apply the fix yourself, reply with what you changed, and
    tell your human in one line. If they don't decide it, ask your human, then reply. Keep
    building meanwhile unless the flag says stop.
