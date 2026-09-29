@@ -42,8 +42,8 @@ needs an issue, and offer to open a change-request (§7) so the lead can plan it
 ```bash
 scripts/team-inbox.sh --all          # PowerShell: scripts/team-inbox.ps1 -All
 ```
-It prints one line per thing waiting for you (REVIEW, QUESTION, ANSWER, BRIEF, NEW) and nothing
-else. On the lead's shared account add `--agent <your name>`. For a REVIEW line, read the PR:
+It prints one line per thing waiting for you (REVIEW, FLAG, QUESTION, ANSWER, BRIEF, READY, NEW) and
+nothing else. On the lead's shared account add `--agent <your name>`. For a REVIEW line, read the PR:
 ```bash
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
@@ -89,29 +89,51 @@ it and hands it to you. An agent with its **own** GitHub account may claim a poo
 behalf of its human; the lead's board then records the human as owner and you as the agent.
 
 **Follow the design.** If your vertical's brief has a `Design:` line, those sections of
-`docs/design.md` are binding: the flow, the screens or commands, the states and the exact words.
-Never edit `docs/design.md` unless your human is the designer. If the design looks wrong or
-missing for your task, open a change-request (§7) addressed to the designer and keep building on
-the design as written meanwhile.
+`docs/design.md` and the mockup in `docs/mockup/` are binding: the flow, the screens or commands,
+the states, the look and the exact words. Never edit `docs/design.md` or `docs/mockup/` unless
+your human is the designer. If the design looks wrong or missing for your task, open a
+change-request (§7) addressed to the designer and keep building on the design as written meanwhile.
 
-**Plan your vertical first.** Your human owns a **vertical**: one issue labelled `vertical`,
+**If your human is the designer**, your first issue is "Design: design.md + clickable mockup".
+Take it before anything else, because everyone's look depends on it:
+1. Ask your human for **references** first: screenshots or sites whose look they want. Describe
+   each one and link it in `docs/design.md`. Never commit someone else's images: this repo is public.
+2. Fill in `docs/design.md` (Flow, Screens and commands, States, Copy, and the look).
+3. Build `docs/mockup/index.html`: one static page, fake data, no build step, that shows every
+   screen and every state from §States (a button or link to switch between them), with the
+   exact copy.
+4. Show it to your human and change it until they agree, then open the PR (§10). Its deadline is
+   in the brief; if it's late, the team starts on `docs/design.md` alone and the mockup follows.
+5. After it merges, design changes come to you as change-requests: your human decides, you edit
+   `docs/design.md` or `docs/mockup/` in your own PR.
+
+**Break down your vertical, live.** Your human owns a **vertical**: one issue labelled `vertical`,
 assigned to them, saying which files they own (`Files:`), what they must deliver (`Acceptance:`)
-and the shared contract (`Contract:`). Before any code:
-1. Read the vertical issue, `IDEA.md` and the contract.
-2. Draft 2–6 tasks that together deliver the vertical's Acceptance. Each uses the task headings
+and the shared contract (`Contract:`). The breakdown lives on GitHub, under the vertical, where
+the whole team and the lead can see it and watch it change.
+1. Read the vertical issue, `IDEA.md`, the contract, `docs/design.md` and `docs/mockup/`.
+2. Write 2–6 tasks that together deliver the vertical's Acceptance. Each uses the task headings
    (Context, Files, Approach, Acceptance, Verify, Deadline), keeps `Files:` inside the vertical's
-   `Files:`, and says `Depends on: #N` where it must wait for another task.
-3. Show the drafts to your human and change them until they agree.
-4. Open each as a sub-issue of the vertical, labelled `draft`:
+   `Files:`, and says `Depends on: #N` where it must wait for another task. If you build the web
+   page, your first task copies `docs/mockup/` into your area and wires it to the real code.
+3. Show them to your human, then open each as a sub-issue of the vertical:
    ```bash
-   gh issue create --label task --label draft --assignee "@me" --title "<what>" --body-file .git/task.md
+   gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/task.md
    # link it under the vertical; sub_issue_id is the issue's id, not its number
    gh api -X POST "repos/{owner}/{repo}/issues/<vertical N>/sub_issues" -F sub_issue_id="$(gh api "repos/{owner}/{repo}/issues/<new N>" --jq .id)"
    ```
-5. The lead reviews your breakdown and may ask up to 3 questions on the vertical issue (GRILL
-   lines in your inbox): answer them there. When the lead removes `draft` from a task, your inbox
-   shows READY: only then start it. A task you see needs changing later: edit its body yourself
-   (§9), never its `Files:`.
+4. **The line.** A task that stays inside the vertical's `Files:` and `Contract:`, doesn't change
+   the design, and serves `IDEA.md` (nothing from "What we don't build", the same demo) is
+   **live**: build it. Anything else: add `--label draft` and a line
+   `Crosses: <area | contract | design | idea>: <why>` to its body, and don't build it until the
+   lead removes `draft` (a READY line in your inbox). The lead may close it instead, with the reason.
+5. **Changing path is normal.** Add, edit or close your own sub-issues as you learn (close with a
+   one-line reason). The same line applies to every change. Never change a sub-issue's `Files:`
+   to leave the vertical's `Files:`.
+6. **A FLAG** is the lead's comment on your vertical or one of its sub-issues. If `IDEA.md`, the
+   contract or the design decides it, apply the fix yourself, reply with what you changed, and
+   tell your human in one line. If they don't decide it, ask your human, then reply. Keep
+   building meanwhile unless the flag says stop.
 
 **Keep checking; your human shouldn't have to prod you.** Run `scripts/team-inbox.sh` (without
 `--all`: it shows only what's new) after every push, before you start each new step, and every
@@ -168,9 +190,9 @@ git checkout <N>-<rest of the name>
 ## 6. Stay in your area
 - Your **area** is the directories `IDEA.md` lists against your name under "Areas and owners".
   Inside it, change whatever your task needs: new files, refactors, tests.
-- Found more work inside your area? Open an issue for it yourself, with the same headings as
-  the lead's (Context, Files, Approach, Acceptance, Verify, Deadline), label `task`, assigned
-  to you: `gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/issue.md`.
+- Found more work inside your area? Add it as a sub-issue of your vertical (§3, "Break down
+  your vertical, live"). With no vertical, open it as a `task` issue assigned to you, with the same
+  headings: `gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/issue.md`.
 - A **pool issue** you've taken is outside every area: while it's yours, you may edit
   exactly the files its `Files:` line lists, and nothing else, until its PR merges.
 - Anything outside your area — another person's area, the core, a dependency

@@ -50,7 +50,7 @@ flowchart TB
         G["7 · Your agent picks up your issue"] --> H["8 · Plan comment, branch, small commits"]
         H --> I["9 · Pull request"]
     end
-    E --> F --> V["6b · Your agent drafts the tasks for your vertical; the lead asks up to 3 questions"] --> G
+    E --> F --> V["6b · Your agent breaks your vertical into sub-issues, live; the lead watches"] --> G
     I --> R
     R -- "changes needed" --> H
     R -- "approved" --> M
@@ -87,6 +87,7 @@ flowchart TB
     F --> G["Say: Read AGENTS.md, then pick up my issue"]
     G --> H{"Your agent runs scripts/team-inbox.sh"}
     H -- "a PR of yours has review comments" --> I["Fix those first"]
+    H -- "the lead flagged a sub-issue" --> FL["Fix it if IDEA.md decides it, else ask you"]
     H -- "a question for you" --> Q["Show you it, with a draft answer"]
     H -- "you have an assigned issue" --> J["Take it, ready ones first"]
     H -- "nothing assigned" --> K["Take one from the pool"]
@@ -207,6 +208,9 @@ Every one of these happened for real while this kit was tested.
 |---|---|
 | **Issue** | One piece of work, a question, or a change-request. A task issue is written by the lead (or by you, in your own area): context, your area, the approach, how to check it, its deadline |
 | **Pool** | Issues with no owner. Anyone who finishes early takes one |
+| **Vertical** | Your whole part of the product: one issue saying which files you own and what you must deliver |
+| **Sub-issue** | One task inside your vertical. Your agent writes them, live, under the vertical; anyone can see them change |
+| **Mockup** | `docs/mockup/index.html`: the designer's clickable picture of every screen and state. The web page is built to look like it |
 | **Branch** | Your own copy of the code for one issue. Named after it, like `12-add-login-form` |
 | **Commit** | One saved step of work, with a message like `feat: login form (#12)` |
 | **Push** | Sending your commits to GitHub so others can see them |

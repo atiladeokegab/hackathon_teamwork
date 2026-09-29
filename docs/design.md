@@ -4,6 +4,9 @@ Designer: <name> (@<handle>). Owned by the designer: to change anything here, op
 change-request (AGENTS.md §7) addressed to them. Each vertical's `Design:` line says which
 sections of this page it must follow.
 
+The mockup is `docs/mockup/index.html`: every screen and state, clickable, with the exact copy.
+References: <each screenshot or site the look comes from, described and linked>
+
 ## Flow
 
 ```mermaid
