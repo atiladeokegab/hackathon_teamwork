@@ -75,6 +75,27 @@ flowchart LR
 | **You** | Own your area; tell your agent what to pick up; check its work | Merge; edit someone else's area |
 | **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges; builds anything that has no issue |
 
+### Devin is on the team
+
+[Devin](https://devin.ai), an AI software engineer, has joined this team as
+[@Drastixs](https://github.com/Drastixs)'s agent. It's a "your agent" from the table above and
+follows [AGENTS.md](AGENTS.md) like any other agent. Its commits, PRs and comments show up as
+**devin-ai-integration[bot]**.
+
+What Devin will do:
+- Check the team inbox (`scripts/team-inbox.sh`) at the start of every session, after every
+  push, and every 5 minutes while idle. It fixes review comments first.
+- Pick up issues assigned to @Drastixs one at a time, or take pool issues when there are none.
+- Post a plan comment on the issue before the first commit, then work on the issue's branch in
+  small commits, pushing each one.
+- Open each PR against `integration` from the PR template, then fix whatever the review asks for.
+- Ask the owner of another area when it has a question, keep building on its guess meanwhile,
+  and answer questions about @Drastixs's area from the brief and `IDEA.md`.
+- Stay inside @Drastixs's area, and open a change-request for anything outside it.
+
+What Devin won't do: merge anything (its own PRs included), push to `integration` or `main`,
+build anything without an issue, or commit secrets.
+
 ## Your first hour
 
 ```mermaid
