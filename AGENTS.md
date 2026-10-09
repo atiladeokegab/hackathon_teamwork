@@ -43,7 +43,8 @@ needs an issue, and offer to open a change-request (§7) so the lead can plan it
 scripts/team-inbox.sh --all          # PowerShell: scripts/team-inbox.ps1 -All
 ```
 It prints one line per thing waiting for you (REVIEW, FLAG, QUESTION, ANSWER, BRIEF, READY, NEW) and
-nothing else. On the lead's shared account add `--agent <your name>`. For a REVIEW line, read the PR:
+nothing else. On the lead's shared account add `--agent <your name>`. If your `gh` is logged in as
+someone other than your human, add `--as <your human's handle>` (PowerShell `-As`). For a REVIEW line, read the PR:
 ```bash
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
@@ -87,6 +88,9 @@ touching a PR from `"@me"`, check that the issue it closes carries your label. *
 pool issues** on a shared account: nobody can tell which agent claimed one. Your human claims
 it and hands it to you. An agent with its **own** GitHub account may claim a pool issue on
 behalf of its human; the lead's board then records the human as owner and you as the agent.
+If your `gh` is logged in as someone other than your human, run the inbox with
+`--as <your human's handle>` (PowerShell `-As`) and use that handle wherever this file says `"@me"` in
+`--assignee`/`--mention`; add `--agent <your name>` too when another agent shares that login.
 
 **Follow the design.** If your vertical's brief has a `Design:` line, those sections of
 `docs/design.md` and the mockup in `docs/mockup/` are binding: the flow, the screens or commands,

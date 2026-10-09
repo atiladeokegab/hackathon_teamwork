@@ -35,7 +35,7 @@ def row(*items):
 if a[:2] == ['api', 'user']:
     print('me')
 elif a[:2] == ['pr', 'list']:
-    for p in read('prs.json'):
+    for p in read('prs.json') if a[a.index('--author') + 1] == '@me' else []:
         row(p['number'], p.get('updatedAt', ''), ','.join(p.get('labels', [])))
 elif a[:2] == ['pr', 'view']:
     p = read(f'pr-{a[2]}.json')
@@ -49,11 +49,12 @@ elif a[:2] == ['issue', 'list']:
     for i in read('issues.json'):
         if '--label' in a and a[a.index('--label') + 1] not in i.get('labels', []):
             continue
-        if '--assignee' in a and 'me' not in i.get('assignees', []):
+        who = lambda f: a[a.index(f) + 1].lstrip('@')
+        if '--assignee' in a and who('--assignee') not in i.get('assignees', []):
             continue
-        if '--author' in a and i.get('author') != 'me':
+        if '--author' in a and i.get('author') != who('--author'):
             continue
-        if '--mention' in a and '@me' not in i.get('body', ''):
+        if '--mention' in a and '@' + who('--mention') not in i.get('body', ''):
             continue
         row(i['number'], i.get('title', ''), i.get('createdAt', ''),
             i.get('updatedAt', ''), ','.join(i.get('labels', [])), i.get('author', ''))
@@ -196,6 +197,19 @@ cat >"$tmp/data/pr-14.json" <<'JSON'
 JSON
 run_inbox --agent Zeus
 check shared_account_review 'REVIEW  #14 changes requested by me: "Lead comment"'
+
+reset_case
+cat >"$tmp/data/issues.json" <<'JSON'
+[{"number":40,"title":"Jack task","createdAt":"2026-09-29T12:04:00Z","updatedAt":"2026-09-29T12:04:00Z","labels":["task"],"assignees":["jack"],"author":"lead"},{"number":41,"title":"Ask Jack","createdAt":"2026-09-29T12:04:00Z","updatedAt":"2026-09-29T12:04:00Z","labels":["question"],"assignees":[],"body":"@jack which?","author":"alice"},{"number":42,"title":"Login's task","createdAt":"2026-09-29T12:04:00Z","updatedAt":"2026-09-29T12:04:00Z","labels":["task"],"assignees":["me"],"author":"lead"}]
+JSON
+cat >"$tmp/data/prs.json" <<'JSON'
+[{"number":14,"updatedAt":"2026-09-29T12:05:00Z","labels":[]}]
+JSON
+cat >"$tmp/data/pr-14.json" <<'JSON'
+{"reviews":[{"submittedAt":"2026-09-29T12:03:00Z","author":"lead","state":"CHANGES_REQUESTED","body":"Fix"}]}
+JSON
+run_inbox --as jack
+check as_handle $'REVIEW  #14 changes requested by lead: "Fix"\nQUESTION #41 for you from alice: "Ask Jack"\nNEW     #40 assigned to you: "Jack task"'
 
 reset_case
 if date -u -d '+42 minutes' '+%Y-%m-%dT%H:%MZ' >"$tmp/deadline" 2>/dev/null; then :; else date -u -v+42M '+%Y-%m-%dT%H:%MZ' >"$tmp/deadline"; fi

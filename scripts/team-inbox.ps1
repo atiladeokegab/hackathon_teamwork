@@ -1,4 +1,4 @@
-param([switch]$All, [switch]$Lead, [string]$Agent)
+param([switch]$All, [switch]$Lead, [string]$Agent, [string]$As = '@me')
 $ErrorActionPreference = 'Stop'
 
 function Gh([string[]]$Arguments) {
@@ -92,7 +92,7 @@ try {
     }
 
     $seen = @{}
-    $forMe = @(Issues @('--label', 'question', '--assignee', '@me')) + @(Issues @('--label', 'question', '--mention', '@me'))
+    $forMe = @(Issues @('--label', 'question', '--assignee', $As)) + @(Issues @('--label', 'question', '--mention', $As))
     foreach ($issue in $forMe) {
         if (!$issue -or !(HasAgent $issue) -or $seen.ContainsKey($issue.number)) { continue }
         $seen[$issue.number] = $true
@@ -111,7 +111,7 @@ try {
         }
     }
 
-    foreach ($issue in (Issues @('--assignee', '@me'))) {
+    foreach ($issue in (Issues @('--assignee', $As))) {
         if (!$issue -or !(HasAgent $issue)) { continue }
         if ([DateTimeOffset]::Parse($issue.updatedAt) -gt $since) {
             foreach ($comment in (Comments $issue.number)) {

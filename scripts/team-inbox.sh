@@ -4,6 +4,7 @@ shopt -s nocasematch
 
 since=1970-01-01T00:00:00Z
 agent=
+who=@me
 all=0
 lead=0
 while (($#)); do
@@ -11,6 +12,7 @@ while (($#)); do
         --all) all=1; shift ;;
         --lead) lead=1; shift ;;
         --agent) agent=${2:?--agent needs a name}; shift 2 ;;
+        --as) who=${2:?--as needs a handle}; shift 2 ;;
         *) printf 'inbox: unknown option: %s\n' "$1" >&2; exit 1 ;;
     esac
 done
@@ -100,8 +102,8 @@ while IFS=$'\t' read -r n updated labels; do
     done <<<"$notes"
 done <<<"$prs"
 
-assigned=$(issue_rows --label question --assignee '@me') || exit 1
-mentioned=$(issue_rows --label question --mention '@me') || exit 1
+assigned=$(issue_rows --label question --assignee "$who") || exit 1
+mentioned=$(issue_rows --label question --mention "$who") || exit 1
 seen=' '
 while IFS=$'\t' read -r n title created updated labels author; do
     [[ -n $n ]] || continue
@@ -128,7 +130,7 @@ while IFS=$'\t' read -r n title created updated labels author; do
     done <<<"$notes"
 done <<<"$authored"
 
-owned=$(issue_rows --assignee '@me') || exit 1
+owned=$(issue_rows --assignee "$who") || exit 1
 while IFS=$'\t' read -r n title created updated labels author; do
     [[ -n $n ]] || continue
     has_agent "$labels" || continue
