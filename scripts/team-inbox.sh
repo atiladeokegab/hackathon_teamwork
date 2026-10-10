@@ -77,10 +77,16 @@ if [[ -f HACKATHON.md ]]; then
 fi
 
 me=$(call api user --jq .login) || exit 1
-prs=$(call pr list -R "$repo" --author '@me' --state open --limit 1000 --json number,updatedAt,labels --jq '.[] | [.number, .updatedAt, ([.labels[].name] | join(","))] | @tsv') || exit 1
-while IFS=$'\t' read -r n updated labels; do
+owned=$(issue_rows --assignee "$who") || exit 1
+mine=' '
+while IFS=$'\t' read -r n _ _ _ labels _; do
+    [[ -n $n ]] && has_agent "$labels" && mine+="$n "
+done <<<"$owned"
+prs=$(call pr list -R "$repo" --state open --limit 1000 --json number,updatedAt,labels,headRefName,author --jq '.[] | [.number, .updatedAt, .headRefName, .author.login, ([.labels[].name] | join(","))] | @tsv') || exit 1
+while IFS=$'\t' read -r n updated head author labels; do
     [[ -n $n ]] || continue
-    has_agent "$labels" || continue
+    # yours, or one the lead opened from the branch of one of your issues
+    [[ $mine == *" ${head%%-*} "* ]] || { [[ $author == "$me" ]] && has_agent "$labels"; } || continue
     reviews=$(call pr view "$n" -R "$repo" --json reviews --jq '.reviews[]? | [.submittedAt // "", .author.login // "", .state // "", ((.body // "") | split("\n")[0])] | @tsv') || exit 1
     newest_time= newest_author= newest_state= newest_body=
     while IFS=$'\t' read -r at author review_state body; do
@@ -130,7 +136,6 @@ while IFS=$'\t' read -r n title created updated labels author; do
     done <<<"$notes"
 done <<<"$authored"
 
-owned=$(issue_rows --assignee "$who") || exit 1
 while IFS=$'\t' read -r n title created updated labels author; do
     [[ -n $n ]] || continue
     has_agent "$labels" || continue

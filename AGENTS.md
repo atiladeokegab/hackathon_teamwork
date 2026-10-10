@@ -1,7 +1,7 @@
 # Rules for every AI agent in this repo
 
 You are working in a hackathon team. The lead agreed the idea in `IDEA.md` with the team and
-split it into GitHub Issues. The lead reviews and merges every PR, often through their own
+split it into GitHub Issues. The lead opens, reviews and merges every PR, often through their own
 agents; below, "the lead" means either. Your human owns some of them. Follow
 these rules exactly. They exist so that five people's agents don't overwrite each other
 at 3am.
@@ -48,10 +48,10 @@ someone other than your human, add `--as <your human's handle>` (PowerShell `-As
 ```bash
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
-Read the reviews' text, not only `reviewDecision`: the lead's review on a PR from the lead's
-own account can only be a comment. If a review asked for changes, fix those before
-anything else, on that PR's branch. Never open a second branch or PR for an issue that
-already has one, unless the lead reverted it (§10).
+Read the reviews' text, not only `reviewDecision`: the lead opens your PRs from its own account,
+so its reviews arrive as comments. `LGTM <sha>` approves, a note starting `FYI:` needs nothing,
+anything else asks for changes. If a review asked for changes, fix those before anything else, on
+that PR's branch. Never open a second branch for an issue that already has one.
 
 Then questions (§8): answer any asked of you, and read the answers to yours.
 ```bash
@@ -71,7 +71,7 @@ Your human may hand one of their tasks to you by name: the issue then carries th
 `agent:<your name>`. To say which agent works on your own issue, add that label yourself.
 An issue that says `Depends on: #N` is ready when #N is closed: take ready ones first. If
 all of yours are waiting, start one anyway against the contract its brief describes, and
-list that under Assumptions in your PR.
+list that under Assumptions in your DONE: comment (§10).
 If that's empty, take one from the pool:
 ```bash
 gh issue list --search "is:open label:pool no:assignee"
@@ -107,7 +107,7 @@ Take it before anything else, because everyone's look depends on it:
 3. Build `docs/mockup/index.html`: one static page, fake data, no build step, that shows every
    screen and every state from §States (a button or link to switch between them), with the
    exact copy.
-4. Show it to your human and change it until they agree, then open the PR (§10). Its deadline is
+4. Show it to your human and change it until they agree, then post DONE: (§10). Its deadline is
    in the brief; if it's late, the team starts on `docs/design.md` alone and the mockup follows:
    then run `git pull --no-rebase origin integration` first, and your PR adds only the mockup and
    the refinements your human approved.
@@ -116,28 +116,35 @@ Take it before anything else, because everyone's look depends on it:
 
 **Break down your vertical, live.** Your human owns a **vertical**: one issue labelled `vertical`,
 assigned to them, saying which files they own (`Files:`), what they must deliver (`Acceptance:`)
-and the shared contract (`Contract:`). The breakdown lives on GitHub, under the vertical, where
-the whole team and the lead can see it and watch it change.
+and the shared contract (`Contract:`). Only those three are fixed, and the line (step 5) still
+applies. Everything else in the brief (`Approach:`, `Preferences:`, any tasks already under it) is
+a suggestion, not an order: your human decides which tasks to build and how. The breakdown lives on
+GitHub, under the vertical, where the whole team and the lead can see it and watch it change.
 1. Read the vertical issue, `IDEA.md`, the contract, `docs/design.md` and `docs/mockup/`.
-2. Write 2–6 tasks that together deliver the vertical's Acceptance. Each uses the task headings
+2. **Ask your human before you propose anything.** Show them the C4 picture the `C4:` line names
+   (`README.md` → Architecture) and which box is theirs, the deliverables (`Acceptance:`), the
+   lead's `Preferences:` and the `Contract:`. Then ask what *they* would build, and how. Their own
+   ideas come first: build the breakdown from them, add only what `Acceptance:` still needs, and
+   say plainly where an idea crosses the line.
+3. From their answer, write 2–6 tasks that together deliver the vertical's Acceptance. Each uses the task headings
    (Context, Files, Approach, Acceptance, Verify, Deadline), keeps `Files:` inside the vertical's
    `Files:`, and says `Depends on: #N` where it must wait for another task. If you build the web
    page, your first task copies `docs/mockup/` into your area and wires it to the real code.
-3. Show them to your human, then open each as a sub-issue of the vertical:
+4. Show them to your human, then open each as a sub-issue of the vertical:
    ```bash
    gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/task.md
    # link it under the vertical; sub_issue_id is the issue's id, not its number
    gh api -X POST "repos/{owner}/{repo}/issues/<vertical N>/sub_issues" -F sub_issue_id="$(gh api "repos/{owner}/{repo}/issues/<new N>" --jq .id)"
    ```
-4. **The line.** A task that stays inside the vertical's `Files:` and `Contract:`, doesn't change
+5. **The line.** A task that stays inside the vertical's `Files:` and `Contract:`, doesn't change
    the design, and serves `IDEA.md` (nothing from "What we don't build", the same demo) is
    **live**: build it. Anything else: add `--label draft` and a line
    `Crosses: <area | contract | design | idea>: <why>` to its body, and don't build it until the
    lead removes `draft` (a READY line in your inbox). The lead may close it instead, with the reason.
-5. **Changing path is normal.** Add, edit or close your own sub-issues as you learn (close with a
+6. **Changing path is normal.** Add, edit or close your own sub-issues as you learn (close with a
    one-line reason). The same line applies to every change. Never change a sub-issue's `Files:`
    to leave the vertical's `Files:`.
-6. **A FLAG** is a comment starting `FLAG:` on your vertical or one of its sub-issues. If `IDEA.md`, the
+7. **A FLAG** is a comment starting `FLAG:` on your vertical or one of its sub-issues. If `IDEA.md`, the
    contract or the design decides it, apply the fix yourself, reply with what you changed, and
    tell your human in one line. If they don't decide it, ask your human, then reply. Keep
    building meanwhile unless the flag says stop.
@@ -149,8 +156,8 @@ With nothing to do, keep checking every 5 minutes until submit, and take pool wo
 there is any. After code freeze, only fixes; after submit, stop and tell your human. Nobody on
 the team will ask your human to pass messages to you: everything you need arrives on GitHub.
 
-**One issue at a time.** Take the next one when this one has an open PR and every change
-a review asked for is pushed. Before you take it, run the questions checks (§8) again.
+**One issue at a time.** Take the next one when you've posted DONE: on this one and every
+change a review asked for is pushed. Before you take it, run the questions checks (§8) again.
 
 ## 4. Plan before you code (no one-shotting)
 Before your first commit on an issue, post a plan as a comment. Write it to a file first,
@@ -167,7 +174,7 @@ comment arrives garbled. If you must use the shell there, use
 gh issue comment <N> --body-file .git/plan.md
 ```
 - Each step that changes files must be small enough for one commit. Checking your work
-  and opening the PR are steps too; they need no commit.
+  and posting DONE: (§10) are steps too; they need no commit.
 - Then do the steps **one at a time**, one commit each, pushed straight away. Don't
   generate the whole feature in one go.
 - Your pushed commits show your progress; don't comment per step. Comment on the issue only
@@ -188,7 +195,8 @@ git checkout <N>-<rest of the name>
   this for you). Never commit to `integration` or `main`; both are protected.
 - **Push after every commit**: `git push -u origin HEAD`. Your branch is how the lead
   sees progress. Never sit on unpushed work.
-- Before opening the PR, and whenever GitHub says your PR has conflicts, merge integration in:
+- Before posting DONE:, and whenever your PR has conflicts (a comment says `integration moved`),
+  merge integration in:
   `git pull --no-rebase origin integration` (plain `git pull` refuses when your branch and
   integration have both moved). Fix the conflicts in **your area**, commit, push. If a
   conflict is outside your area, stop and ask the lead.
@@ -230,7 +238,7 @@ you say otherwise." If it fails with `not found` (they haven't accepted the invi
 again without `--assignee`: the @mention still notifies them. On the lead's shared account,
 add `--label agent:<your name>`.
 
-**Don't wait.** Build on your guess, and list it under Assumptions in your PR.
+**Don't wait.** Build on your guess, and list it under Assumptions in your DONE: comment.
 
 **A question asked of you** (a QUESTION line): skip any that already carries your answer
 (it's waiting for the asker). **Answer it yourself** when the answer is already settled by the
@@ -261,36 +269,37 @@ files is a change-request (§7). After an edit, comment one line saying what you
 why. The lead's board takes an owner's edit in by itself; anyone else's edit waits for the
 lead. If you see "Brief updated by the lead", re-read the issue before you continue.
 
-## 10. Pull request
-First re-read the issue: if it has a "Brief updated by the lead" comment newer than your plan,
-check your work against the new brief before opening the PR.
-Copy the template, fill in every heading, then open the PR from that file
-(`--fill` skips the template, so don't use it):
+## 10. Done: the lead opens the PR
+**Don't open the PR yourself**: no `gh pr create`, no PR template, no approvals to chase. When every
+step is pushed and checked, re-read the issue: if it has a "Brief updated by the lead" comment
+newer than your plan, check your work against the new brief first. Then post DONE: on the issue.
+Its first line starts with `DONE:`:
 ```bash
-cp .github/pull_request_template.md .git/pr-body.md     # then edit it
-gh pr create --title "feat: <what> (#<N>)" --base integration --body-file .git/pr-body.md
+# .git/done.md, never committed:
+#   DONE: <one line: what works now>
+#   Verified: <the commands you ran and what they showed>
+#   Impact: <Architecture boxes and other issues this touches, or "none">
+#   Assumptions: <open questions (#) and the guess used, or "none">
+gh issue comment <N> --body-file .git/done.md
 ```
-The PR body must have:
-- `Closes #<N>`
-- a link to your plan comment, with its checkbox ticked (`- [x]`)
-- Impact: which Architecture boxes and which other issues this touches ("none" is a
-  valid answer)
-- how you verified it
-- Assumptions: open questions and the guess used ("none" is valid)
+Within about 5 minutes the lead's setup opens the PR from your branch into `integration`: it says
+`Closes #<N>`, links your plan and carries your DONE: text. Find it with
+`gh pr list --head <your branch> --json number,url`. Keep each issue small, so its PR is too.
+Only on the lead's shared account may you open the PR yourself instead, from the filled-in
+`.github/pull_request_template.md` (`gh pr create --base integration --body-file .git/pr-body.md`).
 
-Keep PRs small.
+After the lead merges, it runs the smoke check. If your merge turns it red, the lead reverts it,
+reopens your issue and comments the failing output there: fix it on the same branch, push, and
+post a new DONE: comment (the lead opens the new PR).
 
-PRs go to `integration`, the default base, so there is nothing to type. After the lead merges,
-it runs the smoke check. If your merge turns it red, the lead reverts it, reopens your issue and comments the failing
-output there: fix it on the same branch, push, and open a new PR (`gh pr create` again).
-
-**Never merge**, not even your own PR. The lead reviews every PR against its issue and
-`IDEA.md`, and merges it. Until then the PR is still yours:
+**Never merge.** The lead reviews every PR against its issue and `IDEA.md`, and merges it.
+Until then the PR is still yours: its reviews arrive in your inbox as REVIEW lines.
 ```bash
 gh pr view <PR> --json reviewDecision,reviews,comments
 ```
-Fix what the review asks for on the same branch, and push. A review fix needs no new
-plan: comment on the PR with what you changed. Review fixes come before new work. Once the lead approves, don't push to that branch again unless asked: a push
+Fix what the review asks for on the same branch, and push. A review fix needs neither a new plan
+nor a new DONE: comment; say on the PR what you changed. Review fixes come before new work.
+Once the lead approves (`LGTM <sha>`), don't push to that branch again unless asked: a push
 cancels the approval.
 
 ## 11. Commits

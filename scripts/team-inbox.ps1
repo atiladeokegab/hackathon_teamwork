@@ -68,9 +68,15 @@ try {
     }
 
     $me = (Gh @('api', 'user', '--jq', '.login') | Out-String).Trim()
-    $prs = @(GhJson @('pr', 'list', '-R', $repo, '--author', '@me', '--state', 'open', '--limit', '1000', '--json', 'number,updatedAt,labels'))
+    $owned = @(Issues @('--assignee', $As))
+    $mine = @{}
+    foreach ($issue in $owned) { if ($issue -and (HasAgent $issue)) { $mine["$($issue.number)"] = $true } }
+    $prs = @(GhJson @('pr', 'list', '-R', $repo, '--state', 'open', '--limit', '1000', '--json', 'number,updatedAt,labels,headRefName,author'))
     foreach ($pr in $prs) {
-        if (!$pr -or !(HasAgent $pr)) { continue }
+        if (!$pr) { continue }
+        # yours, or one the lead opened from the branch of one of your issues
+        $yours = $pr.author.login -eq $me -and (HasAgent $pr)
+        if (!$mine.ContainsKey(($pr.headRefName -split '-', 2)[0]) -and !$yours) { continue }
         $detail = GhJson @('pr', 'view', "$($pr.number)", '-R', $repo, '--json', 'reviews,comments')
         $latest = @($detail.reviews | Where-Object { $_.submittedAt } | Sort-Object submittedAt | Select-Object -Last 1)
         if ($latest.Count -and $latest[0].author.login -and ($latest[0].author.login -ne $me -or $Agent)) {
@@ -111,7 +117,7 @@ try {
         }
     }
 
-    foreach ($issue in (Issues @('--assignee', $As))) {
+    foreach ($issue in $owned) {
         if (!$issue -or !(HasAgent $issue)) { continue }
         if ([DateTimeOffset]::Parse($issue.updatedAt) -gt $since) {
             foreach ($comment in (Comments $issue.number)) {

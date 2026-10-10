@@ -35,8 +35,8 @@ def row(*items):
 if a[:2] == ['api', 'user']:
     print('me')
 elif a[:2] == ['pr', 'list']:
-    for p in read('prs.json') if a[a.index('--author') + 1] == '@me' else []:
-        row(p['number'], p.get('updatedAt', ''), ','.join(p.get('labels', [])))
+    for p in read('prs.json'):
+        row(p['number'], p.get('updatedAt', ''), p.get('headRefName', 'x'), p.get('author', 'me'), ','.join(p.get('labels', [])))
 elif a[:2] == ['pr', 'view']:
     p = read(f'pr-{a[2]}.json')
     if 'reviews' in a[a.index('--jq') + 1]:
@@ -210,6 +210,22 @@ cat >"$tmp/data/pr-14.json" <<'JSON'
 JSON
 run_inbox --as jack
 check as_handle $'REVIEW  #14 changes requested by lead: "Fix"\nQUESTION #41 for you from alice: "Ask Jack"\nNEW     #40 assigned to you: "Jack task"'
+
+reset_case
+cat >"$tmp/data/issues.json" <<'JSON'
+[{"number":23,"title":"My task","createdAt":"2026-09-29T12:04:00Z","updatedAt":"2026-09-29T12:04:00Z","labels":[],"assignees":["me"],"author":"lead"}]
+JSON
+cat >"$tmp/data/prs.json" <<'JSON'
+[{"number":50,"updatedAt":"2026-09-29T12:05:00Z","headRefName":"23-my-task","author":"lead","labels":[]},{"number":51,"updatedAt":"2026-09-29T12:05:00Z","headRefName":"230-other","author":"lead","labels":[]}]
+JSON
+cat >"$tmp/data/pr-50.json" <<'JSON'
+{"reviews":[{"submittedAt":"2026-09-29T12:06:00Z","author":"lead","state":"COMMENTED","body":"Handle 413"}]}
+JSON
+cp "$tmp/data/pr-50.json" "$tmp/data/pr-51.json"
+run_inbox
+check lead_opened_pr_for_my_issue 'REVIEW  #50 new review by lead: "Handle 413"'
+run_inbox --all --agent zeus
+check lead_opened_pr_other_agent ''
 
 reset_case
 if date -u -d '+42 minutes' '+%Y-%m-%dT%H:%MZ' >"$tmp/deadline" 2>/dev/null; then :; else date -u -v+42M '+%Y-%m-%dT%H:%MZ' >"$tmp/deadline"; fi

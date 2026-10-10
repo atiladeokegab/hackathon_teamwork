@@ -48,9 +48,9 @@ flowchart TB
     end
     subgraph YOU["On your machine"]
         G["7 · Your agent picks up your issue"] --> H["8 · Plan comment, branch, small commits"]
-        H --> I["9 · Pull request"]
+        H --> I["9 · DONE comment on the issue; the lead opens the PR"]
     end
-    E --> F --> V["6b · Your agent breaks your vertical into sub-issues, live; the lead watches"] --> G
+    E --> F --> V["6b · Your agent shows you your box and deliverables, asks what you would build, then writes your sub-issues"] --> G
     I --> R
     R -- "changes needed" --> H
     R -- "approved" --> M
@@ -64,16 +64,16 @@ flowchart TB
 ```mermaid
 flowchart LR
     LEAD(["Lead and their agents"]) -- "writes the issues" --> REPO[("This repo")]
-    LEAD -- "reviews every PR; approved ones merge automatically" --> REPO
+    LEAD -- "opens and reviews every PR; approved ones merge automatically" --> REPO
     YOU(["You"]) -- "drive" --> AGENT["Your AI agent"]
-    AGENT -- "reads AGENTS.md, opens PRs" --> REPO
+    AGENT -- "reads AGENTS.md, pushes, posts DONE" --> REPO
 ```
 
 | Who | Does | Never does |
 |---|---|---|
-| **Lead** | Agrees the idea, writes every issue, and reviews every PR, often through their own agents (named in [HACKATHON.md](HACKATHON.md)). An approved PR is merged automatically within about 5 minutes | Builds in a teammate's area |
-| **You** | Own your area; tell your agent what to pick up; check its work | Merge; edit someone else's area |
-| **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges; builds anything that has no issue |
+| **Lead** | Agrees the idea, writes every issue, and opens and reviews every PR, often through their own agents (named in [HACKATHON.md](HACKATHON.md)). An approved PR is merged automatically within about 5 minutes | Builds in a teammate's area |
+| **You** | Own your area and decide what to build in it and how; tell your agent what to pick up; check its work | Merge; edit someone else's area |
+| **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges or opens PRs; builds anything that has no issue |
 
 ## Your first hour
 
@@ -96,7 +96,7 @@ flowchart TB
     K --> L
     FL --> M
     L --> M["Branch, then one small commit per step, pushed each time"]
-    M --> N["Open a PR and wait for the lead's review"]
+    M --> N["Post DONE on the issue; the lead opens the PR and reviews it"]
 ```
 
 Your job while the agent works: read its plan comment before it starts, and glance at
@@ -115,7 +115,7 @@ stateDiagram-v2
     Planned --> Building: branch and commits
     Building --> Blocked: needs work outside its area
     Blocked --> Building: lead re-plans
-    Building --> InReview: PR opened
+    Building --> InReview: DONE posted, the lead opens the PR
     InReview --> Building: changes requested
     InReview --> Approved: the lead approves
     Approved --> InReview: a new push cancels the approval
@@ -143,7 +143,8 @@ sequenceDiagram
     loop one step at a time
         Agent->>GH: Commit and push to your branch
     end
-    Agent->>GH: Open the PR, which says Closes the issue
+    Agent->>GH: DONE comment on the issue: how it was checked
+    Lead->>GH: Open the PR, which says Closes the issue
     Lead->>GH: Review against the issue and IDEA.md
     alt changes needed
         GH-->>Agent: Review comments
@@ -163,7 +164,7 @@ what gets merged is exactly what was reviewed. Within about 5 minutes of the app
 lead's setup merges the PR into `integration` (one at a time, in dependency order), runs the smoke
 check, and moves `main` only when it's green: `main` is always a working product. If the smoke
 fails, your merge is reverted and your issue reopened with the failing output: fix it on the same
-branch and open a new PR.
+branch and post DONE again.
 
 ## The rules in one table
 
@@ -183,7 +184,7 @@ branch and open a new PR.
 | Anything bigger: open a change-request | The lead re-plans it for everyone, instead of it surprising someone later |
 | Question outside your area: ask its owner, keep building on your guess | The expert answers in minutes; nobody sits blocked |
 | Never edit an issue body; comment instead | The lead's board owns the text, and would overwrite your edit |
-| PR from the template: plan link ticked, Impact, how you checked | The reviewer knows what to look at in one glance |
+| Finished: a DONE comment with how you checked, Impact and Assumptions; the lead opens the PR | Nobody gets stuck on PR mechanics, and the reviewer knows what to look at in one glance |
 | Never merge; don't push after approval | Approved PRs merge automatically; a push after approval cancels the approval |
 | Never commit secrets or agent files | The repo is public; a leaked key must be revoked, not just deleted |
 
@@ -199,7 +200,7 @@ Every one of these happened for real while this kit was tested.
 | `fatal: Need to specify how to reconcile divergent branches` | Plain `git pull` refuses once your branch and `integration` have both moved | `git pull --no-rebase origin integration`, fix conflicts in your area, commit, push |
 | `GraphQL: Projects (classic) is being deprecated` | `gh issue view` / `gh pr view` without `--json`, on gh older than 2.77 | Use the `--json` form from AGENTS.md, or update gh |
 | `API rate limit exceeded` from `team-inbox.sh` | Checking far more often than every 5 minutes | Check after each push and every 5 minutes, not in a tight loop |
-| `GH006: Protected branch update failed` | You pushed to `integration` or `main` | Push to your issue's branch and open a PR |
+| `GH006: Protected branch update failed` | You pushed to `integration` or `main` | Push to your issue's branch, then post DONE on the issue |
 | "Waiting on code owner review" | The lead hasn't approved your PR yet (or a push cancelled the approval) | Nothing: wait for the lead's review |
 | Your plan comment shows up garbled | Windows PowerShell's `>` wrote the file as UTF-16 | Write it with your editor, or `Set-Content -Encoding utf8` |
 | The pool search comes back empty right after the lead adds work | GitHub's search index lags a few seconds | Wait a minute and search again |
@@ -212,13 +213,13 @@ Every one of these happened for real while this kit was tested.
 |---|---|
 | **Issue** | One piece of work, a question, or a change-request. A task issue is written by the lead (or by you, in your own area): context, your area, the approach, how to check it, its deadline |
 | **Pool** | Issues with no owner. Anyone who finishes early takes one |
-| **Vertical** | Your whole part of the product: one issue saying which files you own and what you must deliver |
+| **Vertical** | Your whole part of the product: one issue saying which files you own and what you must deliver. What to build inside it, and how, is your call |
 | **Sub-issue** | One task inside your vertical. Your agent writes them, live, under the vertical; anyone can see them change |
 | **Mockup** | `docs/mockup/index.html`: the designer's clickable picture of every screen and state. The web page is built to look like it |
 | **Branch** | Your own copy of the code for one issue. Named after it, like `12-add-login-form` |
 | **Commit** | One saved step of work, with a message like `feat: login form (#12)` |
 | **Push** | Sending your commits to GitHub so others can see them |
-| **Pull request (PR)** | Asking for your branch to be merged into `integration` |
+| **Pull request (PR)** | Asking for your branch to be merged into `integration`. The lead opens it when your agent posts DONE on the issue |
 | **Review** | The lead reading your PR against the issue and `IDEA.md`, then approving it or asking for changes |
 | **Merge** | Your branch joining `integration`. Happens automatically once the lead approves; never by you |
 | **`integration`** | Where every merged PR lands. The default branch |
