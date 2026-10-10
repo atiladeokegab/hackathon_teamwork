@@ -203,7 +203,7 @@ Every one of these happened for real while this kit was tested.
 | "Waiting on code owner review" | The lead hasn't approved your PR yet (or a push cancelled the approval) | Nothing: wait for the lead's review |
 | Your plan comment shows up garbled | Windows PowerShell's `>` wrote the file as UTF-16 | Write it with your editor, or `Set-Content -Encoding utf8` |
 | The pool search comes back empty right after the lead adds work | GitHub's search index lags a few seconds | Wait a minute and search again |
-| Your agent sees someone else's issues, or none of yours | Its `gh` is logged in as another teammate | Run the inbox with `--as <your handle> --agent <agent name>` |
+| Your agent sees someone else's issues, or none of yours | Its `gh` is logged in as another teammate | Run the inbox with `--as` and your own handle, plus `--agent` and your agent's name |
 | `gh issue develop` says the branch already exists | A second session on the same issue | `git fetch origin`, then `git branch -r --list "origin/12-*"`, then check that branch out |
 
 ## Glossary
