@@ -40,8 +40,15 @@ has_agent() {
     [[ -z $agent || ,$1, == *",agent:$agent,"* ]]
 }
 emit() { out+="$1"$'\n'; }
+# The repo is public: only the team's words ever reach the agent.
+team() { [[ $1 == OWNER || $1 == MEMBER || $1 == COLLABORATOR ]]; }
 comments() {
-    call issue view "$1" -R "$repo" --json comments --jq '.comments[]? | [.createdAt // "", .author.login // "", ((.body // "") | split("\n")[0])] | @tsv'
+    local rows assoc at writer body
+    rows=$(call issue view "$1" -R "$repo" --json comments --jq '.comments[]? | [.authorAssociation // "-", .createdAt // "", .author.login // "", ((.body // "") | split("\n")[0])] | @tsv') || return 1
+    while IFS=$'\t' read -r assoc at writer body; do
+        team "$assoc" && printf '%s\t%s\t%s\n' "$at" "$writer" "$body"
+    done <<<"$rows"
+    return 0
 }
 issue_rows() {
     call issue list -R "$repo" --state open --limit 1000 "$@" --json number,title,createdAt,updatedAt,labels,author --jq '.[] | [.number, .title, .createdAt, .updatedAt, ([.labels[].name] | join(",")), .author.login] | @tsv'
@@ -82,15 +89,15 @@ mine=' '
 while IFS=$'\t' read -r n _ _ _ labels _; do
     [[ -n $n ]] && has_agent "$labels" && mine+="$n "
 done <<<"$owned"
-prs=$(call pr list -R "$repo" --state open --limit 1000 --json number,updatedAt,labels,headRefName,author --jq '.[] | [.number, .updatedAt, .headRefName, .author.login, ([.labels[].name] | join(","))] | @tsv') || exit 1
-while IFS=$'\t' read -r n updated head author labels; do
-    [[ -n $n ]] || continue
+prs=$(call pr list -R "$repo" --state open --limit 1000 --json number,updatedAt,labels,headRefName,author,isCrossRepository --jq '.[] | [.number, .updatedAt, .headRefName, .author.login, .isCrossRepository, ([.labels[].name] | join(","))] | @tsv') || exit 1
+while IFS=$'\t' read -r n updated head author fork labels; do
+    [[ -n $n && $fork == false ]] || continue
     # yours, or one the lead opened from the branch of one of your issues
     [[ $mine == *" ${head%%-*} "* ]] || { [[ $author == "$me" ]] && has_agent "$labels"; } || continue
-    reviews=$(call pr view "$n" -R "$repo" --json reviews --jq '.reviews[]? | [.submittedAt // "", .author.login // "", .state // "", ((.body // "") | split("\n")[0])] | @tsv') || exit 1
+    reviews=$(call pr view "$n" -R "$repo" --json reviews --jq '.reviews[]? | [.authorAssociation // "-", .submittedAt // "", .author.login // "", .state // "", ((.body // "") | split("\n")[0])] | @tsv') || exit 1
     newest_time= newest_author= newest_state= newest_body=
-    while IFS=$'\t' read -r at author review_state body; do
-        [[ -n $at ]] || continue
+    while IFS=$'\t' read -r assoc at author review_state body; do
+        [[ -n $at ]] && team "$assoc" || continue
         if [[ -z $newest_time || $at > $newest_time ]]; then
             newest_time=$at newest_author=$author newest_state=$review_state newest_body=$body
         fi
@@ -100,9 +107,9 @@ while IFS=$'\t' read -r n updated head author labels; do
     elif [[ $newest_time > $since && -n $newest_author && ( $newest_author != "$me" || -n $agent ) ]]; then
         emit "REVIEW  #$n new review by $newest_author: \"$newest_body\""
     fi
-    notes=$(call pr view "$n" -R "$repo" --json comments --jq '.comments[]? | [.createdAt // "", .author.login // "", ((.body // "") | split("\n")[0])] | @tsv') || exit 1
-    while IFS=$'\t' read -r at author body; do
-        [[ -n $at && $at > $since && -n $author ]] || continue
+    notes=$(call pr view "$n" -R "$repo" --json comments --jq '.comments[]? | [.authorAssociation // "-", .createdAt // "", .author.login // "", ((.body // "") | split("\n")[0])] | @tsv') || exit 1
+    while IFS=$'\t' read -r assoc at author body; do
+        [[ -n $at && $at > $since && -n $author ]] && team "$assoc" || continue
         [[ $author != "$me" || -n $agent ]] || continue
         emit "REVIEW  #$n new comment by $author: \"$body\""
     done <<<"$notes"

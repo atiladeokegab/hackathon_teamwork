@@ -17,9 +17,13 @@ function FirstLine($Body) {
 function HasAgent($Item) {
     return (!$Agent -or (@($Item.labels | ForEach-Object { $_.name }) -contains "agent:$Agent"))
 }
+# The repo is public: only the team's words ever reach the agent.
+function Team($Item) {
+    return ($Item -and $Item.authorAssociation -in @('OWNER', 'MEMBER', 'COLLABORATOR'))
+}
 function Comments($Number) {
     $item = GhJson @('issue', 'view', "$Number", '-R', $repo, '--json', 'comments')
-    return @($item.comments)
+    return @($item.comments | Where-Object { Team $_ })
 }
 function Flags($Number) {
     $comments = @(Comments $Number)
@@ -71,14 +75,14 @@ try {
     $owned = @(Issues @('--assignee', $As))
     $mine = @{}
     foreach ($issue in $owned) { if ($issue -and (HasAgent $issue)) { $mine["$($issue.number)"] = $true } }
-    $prs = @(GhJson @('pr', 'list', '-R', $repo, '--state', 'open', '--limit', '1000', '--json', 'number,updatedAt,labels,headRefName,author'))
+    $prs = @(GhJson @('pr', 'list', '-R', $repo, '--state', 'open', '--limit', '1000', '--json', 'number,updatedAt,labels,headRefName,author,isCrossRepository'))
     foreach ($pr in $prs) {
-        if (!$pr) { continue }
+        if (!$pr -or $pr.isCrossRepository) { continue }
         # yours, or one the lead opened from the branch of one of your issues
         $yours = $pr.author.login -eq $me -and (HasAgent $pr)
         if (!$mine.ContainsKey(($pr.headRefName -split '-', 2)[0]) -and !$yours) { continue }
         $detail = GhJson @('pr', 'view', "$($pr.number)", '-R', $repo, '--json', 'reviews,comments')
-        $latest = @($detail.reviews | Where-Object { $_.submittedAt } | Sort-Object submittedAt | Select-Object -Last 1)
+        $latest = @($detail.reviews | Where-Object { $_.submittedAt -and (Team $_) } | Sort-Object submittedAt | Select-Object -Last 1)
         if ($latest.Count -and $latest[0].author.login -and ($latest[0].author.login -ne $me -or $Agent)) {
             $review = $latest[0]
             $body = FirstLine $review.body
@@ -89,7 +93,7 @@ try {
             }
         }
         foreach ($comment in @($detail.comments)) {
-            if (!$comment -or !$comment.createdAt -or !$comment.author.login) { continue }
+            if (!(Team $comment) -or !$comment.createdAt -or !$comment.author.login) { continue }
             if ([DateTimeOffset]::Parse($comment.createdAt) -le $since) { continue }
             if ($comment.author.login -eq $me -and !$Agent) { continue }
             $body = FirstLine $comment.body
