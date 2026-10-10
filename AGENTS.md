@@ -116,7 +116,7 @@ Take it before anything else, because everyone's look depends on it:
 
 **Break down your vertical, live.** Your human owns a **vertical**: one issue labelled `vertical`,
 assigned to them, saying which files they own (`Files:`), what they must deliver (`Acceptance:`)
-and the shared contract (`Contract:`). Only those three are fixed, and the line (step 5) still
+and the shared contract (`Contract:`). Only those three are fixed, and the line (step 6) still
 applies. Everything else in the brief (`Approach:`, `Preferences:`, any tasks already under it) is
 a suggestion, not an order: your human decides which tasks to build and how. The breakdown lives on
 GitHub, under the vertical, where the whole team and the lead can see it and watch it change.
@@ -126,25 +126,29 @@ GitHub, under the vertical, where the whole team and the lead can see it and wat
    lead's `Preferences:` and the `Contract:`. Then ask what *they* would build, and how. Their own
    ideas come first: build the breakdown from them, add only what `Acceptance:` still needs, and
    say plainly where an idea crosses the line.
-3. From their answer, write 2–6 tasks that together deliver the vertical's Acceptance. Each uses the task headings
-   (Context, Files, Approach, Acceptance, Verify, Deadline), keeps `Files:` inside the vertical's
+3. **Grill their plan before you write it down.** Stress-test their ideas one question at a time,
+   each with your recommended answer, then wait for theirs: what happens on a bad input, how it
+   meets the contract, what they'd cut if time runs short, what the demo shows. Stop when the plan
+   holds. If your tool has a grill or grilling skill, you may use it.
+4. From their answers, write 2–6 tasks that together deliver the vertical's Acceptance. Each uses
+   the task headings (Context, Files, Approach, Acceptance, Verify, Deadline), keeps `Files:` inside the vertical's
    `Files:`, and says `Depends on: #N` where it must wait for another task. If you build the web
    page, your first task copies `docs/mockup/` into your area and wires it to the real code.
-4. Show them to your human, then open each as a sub-issue of the vertical:
+5. Show them to your human, then open each as a sub-issue of the vertical:
    ```bash
    gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/task.md
    # link it under the vertical; sub_issue_id is the issue's id, not its number
    gh api -X POST "repos/{owner}/{repo}/issues/<vertical N>/sub_issues" -F sub_issue_id="$(gh api "repos/{owner}/{repo}/issues/<new N>" --jq .id)"
    ```
-5. **The line.** A task that stays inside the vertical's `Files:` and `Contract:`, doesn't change
+6. **The line.** A task that stays inside the vertical's `Files:` and `Contract:`, doesn't change
    the design, and serves `IDEA.md` (nothing from "What we don't build", the same demo) is
    **live**: build it. Anything else: add `--label draft` and a line
    `Crosses: <area | contract | design | idea>: <why>` to its body, and don't build it until the
    lead removes `draft` (a READY line in your inbox). The lead may close it instead, with the reason.
-6. **Changing path is normal.** Add, edit or close your own sub-issues as you learn (close with a
+7. **Changing path is normal.** Add, edit or close your own sub-issues as you learn (close with a
    one-line reason). The same line applies to every change. Never change a sub-issue's `Files:`
    to leave the vertical's `Files:`.
-7. **A FLAG** is a comment starting `FLAG:` on your vertical or one of its sub-issues. If `IDEA.md`, the
+8. **A FLAG** is a comment starting `FLAG:` on your vertical or one of its sub-issues. If `IDEA.md`, the
    contract or the design decides it, apply the fix yourself, reply with what you changed, and
    tell your human in one line. If they don't decide it, ask your human, then reply. Keep
    building meanwhile unless the flag says stop.
