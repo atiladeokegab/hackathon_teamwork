@@ -1,0 +1,22 @@
+name: smoke
+# The event's smoke on every PR into integration: offline, no secrets, same `make smoke` the lead
+# runs. gh-sync --init makes it a required check; hub live merges a PR only once it passed.
+on:
+  pull_request:
+    branches: [integration]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+      - name: make smoke
+        run: |
+          if ! make -n smoke >/dev/null 2>&1; then
+            echo "No smoke target in the Makefile yet: nothing to smoke."; exit 0
+          fi
+          make smoke
