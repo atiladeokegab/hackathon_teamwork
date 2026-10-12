@@ -9,4 +9,8 @@ Other issues affected:
 ## Assumptions
 Open questions (#) and the guess this PR builds on. "none" is a valid answer.
 
-## How I verified it
+## Verified
+Each command, run in a clean copy after `git pull --no-rebase origin integration`, and what it showed, with counts.
+
+## Not verified
+What you didn't check and why, or "none".

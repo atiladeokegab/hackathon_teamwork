@@ -18,6 +18,8 @@ New to this? Read the rest of this page once. It takes ten minutes and saves hou
 - **git** and the **GitHub CLI 2.63 or newer** (`gh --version`), logged in with
   `gh auth login` in the browser. Don't use a fine-grained token (`github_pat_…`): it
   can't accept the invite or push to a repo you don't own.
+- **uv** and **make** (`uv --version`, `make --version`): the product runs with `make dev` and is
+  checked with `make check`. On Windows, use Git Bash or WSL for `make`.
 - **Accept the invite** to this repo from your email or github.com/notifications. Until
   you do, your issues can't be assigned to you.
 - **Never commit API keys.** This repo is public: keys go in `.env` (ignored), and are
@@ -42,7 +44,7 @@ flowchart TB
     end
     subgraph GH["On GitHub: this repo"]
         F["6 · Every task becomes an Issue"]
-        R{"10 · The lead reviews"}
+        R{"10 · Gated path? The lead reviews first"}
         M["11 · Merged into integration, issue closed"]
         S{"12 · Smoke check"}
     end
@@ -53,7 +55,7 @@ flowchart TB
     E --> F --> V["6b · Your agent shows you your box and deliverables, asks what you would build, then writes your sub-issues"] --> G
     I --> R
     R -- "changes needed" --> H
-    R -- "approved" --> M
+    R -- "approved, or no gated path" --> M
     M --> S
     S -- "green" --> N["main moves forward; the lead's board updates by itself"]
     S -- "red: reverted, issue reopened" --> H
@@ -64,14 +66,14 @@ flowchart TB
 ```mermaid
 flowchart LR
     LEAD(["Lead and their agents"]) -- "writes the issues" --> REPO[("This repo")]
-    LEAD -- "opens and reviews every PR; approved ones merge automatically" --> REPO
+    LEAD -- "opens every PR; reviews gated ones before merge, the rest after" --> REPO
     YOU(["You"]) -- "drive" --> AGENT["Your AI agent"]
     AGENT -- "reads AGENTS.md, pushes, posts DONE" --> REPO
 ```
 
 | Who | Does | Never does |
 |---|---|---|
-| **Lead** | Agrees the idea, writes every issue, and opens and reviews every PR, often through their own agents (named in [HACKATHON.md](HACKATHON.md)). An approved PR is merged automatically within about 5 minutes | Builds in a teammate's area |
+| **Lead** | Agrees the idea, writes every issue, and opens every PR from your agent's DONE comment, often through their own agents (named in [HACKATHON.md](HACKATHON.md)). A PR touching a gated path (the runner, safety, prompts, the core, the contract, eval scoring, dependencies, CI) waits for the lead's review; the rest merge on a green smoke and are reviewed straight after | Builds in a teammate's area |
 | **You** | Own your area and decide what to build in it and how; tell your agent what to pick up; check its work | Merge; edit someone else's area |
 | **Your agent** | Follows [AGENTS.md](AGENTS.md) to the letter | Merges or opens PRs; builds anything that has no issue |
 
@@ -96,7 +98,7 @@ flowchart TB
     K --> L
     FL --> M
     L --> M["Branch, then one small commit per step, pushed each time"]
-    M --> N["Post DONE on the issue; the lead opens the PR and reviews it"]
+    M --> N["Check a clean copy, post DONE with Verified; the lead opens the PR"]
 ```
 
 Your job while the agent works: read its plan comment before it starts, and glance at
@@ -115,9 +117,10 @@ stateDiagram-v2
     Planned --> Building: branch and commits
     Building --> Blocked: needs work outside its area
     Blocked --> Building: lead re-plans
-    Building --> InReview: DONE posted, the lead opens the PR
-    InReview --> Building: changes requested
-    InReview --> Approved: the lead approves
+    Building --> InReview: DONE posted with Verified, the lead opens the PR
+    InReview --> Merged: no gated path and smoke green (reviewed after)
+    InReview --> Building: CHANGES requested
+    InReview --> Approved: the lead approves a gated PR
     Approved --> InReview: a new push cancels the approval
     Approved --> Merged: merged into integration automatically (within ~5 min)
     Merged --> Done: smoke green, main moves forward
@@ -143,28 +146,31 @@ sequenceDiagram
     loop one step at a time
         Agent->>GH: Commit and push to your branch
     end
-    Agent->>GH: DONE comment on the issue: how it was checked
+    Agent->>GH: DONE comment: Verified in a clean copy
     Lead->>GH: Open the PR, which says Closes the issue
-    Lead->>GH: Review against the issue and IDEA.md
-    alt changes needed
-        GH-->>Agent: Review comments
-        Agent->>GH: Push the fix
-        Lead->>GH: Review again
+    alt touches a gated path
+        Lead->>GH: Review against the issue and IDEA.md
+        opt changes needed
+            GH-->>Agent: CHANGES comment
+            Agent->>GH: Push the fix
+        end
+        Lead->>GH: LGTM at the reviewed commit
+    else no gated path
+        Note over GH: Merges on a green smoke; the lead reviews it straight after
     end
-    Lead->>GH: Approve
-    Note over GH: Any push now cancels the approval
-    Note over GH: Merged automatically within about 5 minutes
+    Note over GH: Merged automatically, one at a time, smoke checked
     GH-->>You: Issue closed, task done on the lead's board
 ```
 
 GitHub enforces the important part. Teammates can't push straight to `integration` or `main`;
-only the lead's account can, which is how the lead moves `main` and reverts. A PR can't be
-merged until the lead has approved it. A push after approval cancels the approval, so
-what gets merged is exactly what was reviewed. Within about 5 minutes of the approval, the
-lead's setup merges the PR into `integration` (one at a time, in dependency order), runs the smoke
-check, and moves `main` only when it's green: `main` is always a working product. If the smoke
-fails, your merge is reverted and your issue reopened with the failing output: fix it on the same
-branch and post DONE again.
+only the lead's account can, which is how the lead moves `main` and reverts. A PR that touches a
+gated path (the runner, safety, prompts, the core, the contract, eval scoring, dependencies, CI), or
+any file outside its issue's Files line, merges only after the lead's `LGTM`, and a push after it
+cancels it, so what gets merged is exactly what was reviewed. Every other PR merges as soon as the
+smoke passes, and the lead reviews it straight after: a finding comes back as a new issue or a
+revert. Either way the lead's setup merges one PR at a time, runs the smoke check, and moves `main`
+only when it's green: `main` is always a working product. If the smoke fails, your merge is reverted
+and your issue reopened with the failing output: fix it on the same branch and post DONE again.
 
 ## The rules in one table
 
@@ -173,6 +179,7 @@ branch and post DONE again.
 | Rule | Why |
 |---|---|
 | Read `IDEA.md` and `HACKATHON.md` first | You build a part of one agreed idea, not your own version of it |
+| One factory, one store, one gateway; `make dev` runs everything; files under 1,000 lines | When the right way is the only easy way, five agents build one product, not five |
 | Check the clock in UTC every session | After code freeze, no new features; after submit, nothing at all |
 | Only work on issues | "Just build the whole frontend" is how five agents overwrite each other |
 | Review fixes first, every session | A PR waiting on you blocks everyone who depends on it |
@@ -183,9 +190,10 @@ branch and post DONE again.
 | Stay in your area | Two people editing one file lose each other's work |
 | Anything bigger: open a change-request | The lead re-plans it for everyone, instead of it surprising someone later |
 | Question outside your area: ask its owner, keep building on your guess | The expert answers in minutes; nobody sits blocked |
-| Never edit an issue body; comment instead | The lead's board owns the text, and would overwrite your edit |
-| Finished: a DONE comment with how you checked, Impact and Assumptions; the lead opens the PR | Nobody gets stuck on PR mechanics, and the reviewer knows what to look at in one glance |
-| Never merge; don't push after approval | Approved PRs merge automatically; a push after approval cancels the approval |
+| Edit only your own task's brief, never its Files line, and comment what changed | The lead's board takes an owner's edit in; more files is a change-request |
+| A small docs, copy or number fix goes on your open branch, with no new issue | A one-line change shouldn't cost a whole issue and PR |
+| Finished: check a clean copy, then a DONE comment with Verified, Not verified, Impact and Assumptions; the lead opens the PR | Nobody gets stuck on PR mechanics, and a merge without review is only safe when its evidence is real |
+| Never merge; don't push after an LGTM | PRs merge automatically; a push after approval cancels the approval |
 | Never commit secrets or agent files | The repo is public; a leaked key must be revoked, not just deleted |
 
 ## Troubleshooting
@@ -206,6 +214,7 @@ Every one of these happened for real while this kit was tested.
 | The pool search comes back empty right after the lead adds work | GitHub's search index lags a few seconds | Wait a minute and search again |
 | Your agent sees someone else's issues, or none of yours | Its `gh` is logged in as another teammate | Run the inbox with `--as` and your own handle, plus `--agent` and your agent's name |
 | `gh issue develop` says the branch already exists | A second session on the same issue | `git fetch origin`, then `git branch -r --list "origin/12-*"`, then check that branch out |
+| Your DONE got no PR, and a comment says Verified is missing | The DONE comment has no `Verified:` line | Check a clean copy (AGENTS.md §7), then post a new DONE with the commands and what they showed |
 
 ## Glossary
 
@@ -220,15 +229,25 @@ Every one of these happened for real while this kit was tested.
 | **Commit** | One saved step of work, with a message like `feat: login form (#12)` |
 | **Push** | Sending your commits to GitHub so others can see them |
 | **Pull request (PR)** | Asking for your branch to be merged into `integration`. The lead opens it when your agent posts DONE on the issue |
-| **Review** | The lead reading your PR against the issue and `IDEA.md`, then approving it or asking for changes |
-| **Merge** | Your branch joining `integration`. Happens automatically once the lead approves; never by you |
+| **Review** | The lead reading your PR against the issue and `IDEA.md`: before it merges if it touches a gated path, straight after if not |
+| **Merge** | Your branch joining `integration`. Automatic, after the lead's approval or, with no gated path, a green smoke; never by you |
 | **`integration`** | Where every merged PR lands. The default branch |
 | **`main`** | The last version that passed the smoke check. Only the lead moves it |
-| **CODEOWNERS** | The file that makes the lead's approval required on every PR |
+| **CODEOWNERS** | The file naming the lead as owner of every path |
 | **Milestone** | A deadline on GitHub: each issue belongs to `code freeze` or `submit` |
 | **Change-request** | An issue asking the lead to re-plan something outside your area |
 | **Question** | An issue asking the owner of an area something; your agent keeps building on its guess meanwhile |
 | **Code freeze** | The time after which only fixes, demo and submission work are allowed |
+| **Gated path** | A file whose change waits for review before merging: the runner, safety, prompts, the core, the contract, eval scoring, dependencies, CI |
+| **Starter** | The team's own backbone, written before the event and copied in as the first code commit: app factory, data store, tool gateway, case runner, deploy |
+| **Contract** | `docs/CONTRACT.md`: the shapes, endpoints, errors and tools every area builds against. Only the lead changes it |
+
+## Pre-existing work
+
+The first code commit after planning copies in the team's starter, written and rehearsed before the
+event: the app factory, data store, tool gateway, agent loop, case runner, eval skeleton and deploy
+script. Its commit message names the starter commit it came from. Everything after that commit was
+built during the event.
 
 ---
 

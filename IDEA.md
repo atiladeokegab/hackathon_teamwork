@@ -32,3 +32,14 @@ contracts; only the lead changes it.
 |---|---|---|---|
 | core | <dirs> | @<lead handle> | #<n> |
 | <area> | <dirs> | @<handle> | #<n>, #<n> |
+
+Deploy owner: @<handle> (<agent>). Only they run `make deploy`, from `main` after it moves; two
+laptops deploying undo each other.
+
+### Ceilings
+
+The shortcuts each area takes on purpose, and what replaces each if we outgrow it. Review checks
+work against these; a shortcut not listed here is a finding.
+
+- core: <e.g. JSON file store, one instance; a database if we ever run two>
+- <area>: <its ceiling>

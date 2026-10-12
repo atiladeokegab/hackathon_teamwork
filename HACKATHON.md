@@ -17,6 +17,7 @@ date, so this UTC column is the clock, never the milestone.
 
 | Deadline | Event time | UTC |
 |---|---|---|
+| spine | <YYYY-MM-DDTHH:MM±HH:MM> | <YYYY-MM-DDTHH:MMZ> |
 | code freeze | <YYYY-MM-DDTHH:MM±HH:MM> | <YYYY-MM-DDTHH:MMZ> |
 | submit | <YYYY-MM-DDTHH:MM±HH:MM> | <YYYY-MM-DDTHH:MMZ> |
 
@@ -26,9 +27,9 @@ date, so this UTC column is the clock, never the milestone.
 
 ## Team
 
-| Name | GitHub | Role |
-|---|---|---|
-| <name> | @<handle> | <role> |
+| Name | GitHub | Role | Bring |
+|---|---|---|---|
+| <name> | @<handle> | <role> | <domain files, rules or data they bring; empty if none> |
 
 The lead's agents: <e.g. "Zeus plans, reviews and merges; Prometheus builds">. When this page
 or a review says "the lead", it may be one of them acting for the lead.
