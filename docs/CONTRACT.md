@@ -32,6 +32,9 @@ What every area uses and nobody re-implements (AGENTS.md §1):
 
 <One line per tool: name, input, output, the effect it performs or simulates (`SIMULATED`), owning area.>
 
+<How each vertical's tool reaches the current case: the gateway passes a tool only its arguments, and
+a `SIMULATED` effect runs only in its `simulate=` hook. Say which input or hook carries the case.>
+
 ## Answers
 
 `ANSWERS/<n>/ANSWER.md` in the event's format, with one line `Final state: <STATE>`, where STATE is

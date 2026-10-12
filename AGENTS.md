@@ -63,7 +63,9 @@ and `Contract:` bind; `Approach:`, `Preferences:` and seeded tasks are suggestio
    contract, what to cut if time runs short, what the demo shows) until it holds.
 2. Write 2–6 tasks with the headings Context, Files, Approach, Acceptance, Verify, Deadline, `Files:`
    inside the vertical's, `Depends on: #N` where needed (the web page's first task copies
-   `docs/mockup/` into your area). Show your human, then open each as a sub-issue:
+   `docs/mockup/` into your area). Show your human, then open each as a sub-issue. Never add an
+   `agent:*` label to one, even on a shared or borrowed account: those belong to the lead's agents,
+   and the hub sends that issue's reviews to the agent it names.
    ```bash
    gh issue create --label task --assignee "@me" --title "<what>" --body-file .git/task.md
    gh api -X POST "repos/{owner}/{repo}/issues/<vertical N>/sub_issues" -F sub_issue_id="$(gh api "repos/{owner}/{repo}/issues/<new N>" --jq .id)"
