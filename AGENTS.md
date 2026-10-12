@@ -99,6 +99,8 @@ one go. Comment again only if blocked. Before DONE: and on `integration moved`:
 `git pull --no-rebase origin integration`, fix conflicts in your area, push (outside it: ask the lead).
 **Small changes need no issue:** a docs, copy or number fix in your area goes on your open issue's
 branch as its own commit; list it in that issue's DONE:.
+**Setup took you over 10 minutes** (an install, an account, a flag, an error)? Add what fixed it to
+`docs/SETUP.md` in three lines (symptom, fix, check) on the same branch, so the next agent doesn't pay again.
 
 ## 6. Your area, change-requests, questions
 Your **area** is the directories `IDEA.md` lists against your name: change anything there. New work in
