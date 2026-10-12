@@ -1,13 +1,14 @@
 param([switch]$All, [switch]$Lead, [string]$Agent, [string]$As = '@me')
 $ErrorActionPreference = 'Stop'
 
-function Gh([string[]]$Arguments) {
+# Not named Gh: PowerShell names ignore case, so `gh` inside it would call itself forever.
+function Invoke-Gh([string[]]$Arguments) {
     $result = & gh @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) { throw (($result | Out-String).Trim()) }
     return $result
 }
 function GhJson([string[]]$Arguments) {
-    $raw = Gh $Arguments
+    $raw = Invoke-Gh $Arguments
     return ($raw | Out-String | ConvertFrom-Json)
 }
 function FirstLine($Body) {
@@ -71,7 +72,7 @@ try {
         }
     }
 
-    $me = (Gh @('api', 'user', '--jq', '.login') | Out-String).Trim()
+    $me = (Invoke-Gh @('api', 'user', '--jq', '.login') | Out-String).Trim()
     $owned = @(Issues @('--assignee', $As))
     $mine = @{}
     foreach ($issue in $owned) { if ($issue -and (HasAgent $issue)) { $mine["$($issue.number)"] = $true } }
