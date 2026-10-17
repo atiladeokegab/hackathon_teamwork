@@ -25,6 +25,8 @@ date, so this UTC column is the clock, never the milestone.
 
 - <criterion>: <weight>
 
+Penalised: <quoted from the brief, or "nothing stated">
+
 ## Team
 
 | Name | GitHub | Role | Bring |
