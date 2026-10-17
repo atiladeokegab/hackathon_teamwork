@@ -20,3 +20,16 @@ jobs:
             echo "No smoke target in the Makefile yet: nothing to smoke."; exit 0
           fi
           make smoke
+  image:
+    # Builds the image Cloud Run will run and imports the app inside it, so a dependency missing from
+    # the image fails here, not after deploy. DATA_PATH: the image runs as a non-root user that cannot
+    # create ./data. The import is the starter's entry module: change it if yours differs.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: build the image, import the app inside it
+        run: |
+          if [ ! -f Dockerfile ]; then echo "No Dockerfile yet: no image to check."; exit 0; fi
+          docker build -t app .
+          docker run --rm -e DATA_PATH=/tmp/store.json app python -c "import starter.main"
