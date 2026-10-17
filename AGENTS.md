@@ -18,8 +18,9 @@ The code starts from the team's starter, copied in as the first commit after pla
 - **Current docs.** Read a library's current docs (Context7 if your tool has it) before using its API.
 - **Files stay under 1,000 lines.** Split before you cross it.
 - **Run `make check` before `DONE:`** (§7); until the starter lands, HACKATHON.md's `Smoke:`.
-- **Release only through the pipeline.** Never run `gcloud run deploy`, `make deploy` or `deploy.sh`:
-  the lead's setup deploys `main`. A push is not a deploy; a broken pipeline is reported, never bypassed.
+- **Release only through the pipeline.** Unless IDEA.md names you Deploy owner, never run `gcloud run
+  deploy`, `make deploy` or `deploy.sh`. The deploy owner deploys only `main`, and after the spine the
+  lead's setup deploys it. A push is not a deploy; a broken pipeline is reported, never bypassed.
 - **Local and production stay one system.** A change on one side updates the other in the same PR:
   | Change | Also update |
   |---|---|
