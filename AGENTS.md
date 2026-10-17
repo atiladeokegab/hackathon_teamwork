@@ -18,6 +18,14 @@ The code starts from the team's starter, copied in as the first commit after pla
 - **Current docs.** Read a library's current docs (Context7 if your tool has it) before using its API.
 - **Files stay under 1,000 lines.** Split before you cross it.
 - **Run `make check` before `DONE:`** (§7); until the starter lands, HACKATHON.md's `Smoke:`.
+- **Release only through the pipeline.** Never run `gcloud run deploy`, `make deploy` or `deploy.sh`:
+  the lead's setup deploys `main`. A push is not a deploy; a broken pipeline is reported, never bypassed.
+- **Local and production stay one system.** A change on one side updates the other in the same PR:
+  | Change | Also update |
+  |---|---|
+  | Setting | `.env.example`; for cloud, `scripts/deploy.sh` `--set-env-vars` (a secret: `--set-secrets`) |
+  | Dependency | `pyproject.toml` and `uv.lock` (§6): the image installs only those; CI imports the app in it |
+  | Route or tool | `docs/CONTRACT.md`; every GET answers below 500 in the sweep |
 
 ## 2. Read first, check the clock
 `IDEA.md`: what we build and don't, who owns which area, each area's ceilings. `HACKATHON.md`: brief,
@@ -135,7 +143,7 @@ Post DONE: with `gh issue comment <N> --body-file .git/done.md`:
 ```
 DONE: <one line: what works now>
 Verified: <each command run in the clean copy and what it showed, with counts: "make check: 41 passed">
-Not verified: <what you didn't check and why, or "none">
+Not verified: <every check you skipped or didn't run, and why, or "none"; never list it as passing>
 Impact: <Architecture boxes and other issues this touches, or "none">
 Assumptions: <open questions (#) and the guess used, or "none">
 ```
