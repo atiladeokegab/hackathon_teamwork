@@ -196,6 +196,25 @@ and your issue reopened with the failing output: fix it on the same branch and p
 | Never merge; don't push after an LGTM | PRs merge automatically; a push after approval cancels the approval |
 | Never commit secrets or agent files | The repo is public; a leaked key must be revoked, not just deleted |
 
+## The first screen
+
+Judges decide in the first look. `docs/first-screen.html` is a ready first screen: a one-line
+promise, one big button that runs the main workflow end to end, a 3 to 5 step "how it works"
+strip with the step where the host's AI acts highlighted and labelled, and a result panel with
+the run's output and one key number. It is one file, plain HTML with no build step, and it demos
+offline: until you point it at your endpoint, the button shows a result marked `SIMULATED`.
+
+To adapt it, in about ten minutes:
+
+1. Open `docs/first-screen.html` and edit only the `CONFIG` block. Replace every `<...>`.
+2. Write the promise as what the judge gets, not what the product is.
+3. Keep 3 to 5 steps. Mark exactly one with `ai: "Codex / OpenAI"` (or the host's tech).
+4. Set `runUrl` to the endpoint that runs the whole workflow and returns
+   `{"output": "...", "number": 42}`, and `runBody` to a real example input. Add the endpoint to
+   `docs/CONTRACT.md`.
+5. Serve the page at `/` from the app factory, so it is the first thing the demo URL shows.
+6. Press the button on the deployed URL. Nothing says `SIMULATED`, and the number is real.
+
 ## Troubleshooting
 
 Every one of these happened for real while this kit was tested.

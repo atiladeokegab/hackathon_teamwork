@@ -104,7 +104,8 @@ Before the first commit, post a plan whose first line is `Plan:` (numbered steps
 exists: `git fetch origin`, `git branch -r --list "origin/<N>-*"`, check that out); branches start
 from `integration`, and you never commit to `integration` or `main`. One step per commit, pushed at
 once (`git push -u origin HEAD`), messages like `feat: login form (#12)`; never the whole feature in
-one go. Comment again only if blocked. Before DONE: and on `integration moved`:
+one go. **Codex commits end with `Co-authored-by: Codex <noreply@openai.com>`**, so the "How we used
+Codex" numbers can count them (`git log --grep`). Comment again only if blocked. Before DONE: and on `integration moved`:
 `git pull --no-rebase origin integration`, fix conflicts in your area, push (outside it: ask the lead).
 **Small changes need no issue:** a docs, copy or number fix in your area goes on your open issue's
 branch as its own commit; list it in that issue's DONE:.
