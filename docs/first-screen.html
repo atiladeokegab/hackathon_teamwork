@@ -1,0 +1,117 @@
+<!doctype html>
+<!-- First-screen kit: judges see the key feature in one look and run it with one button.
+     Adapting it: edit only the CONFIG block below (README, "The first screen"). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project name</title>
+<style>
+  :root { --bg: #fafafa; --ink: #18181b; --muted: #52525b; --line: #e4e4e7; --card: #fff; --accent: #10a37f; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #09090b; --ink: #f4f4f5; --muted: #a1a1aa; --line: #27272a; --card: #18181b; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 48px 16px; display: grid; gap: 40px; }
+  .hero { text-align: center; display: grid; gap: 20px; justify-items: center; }
+  .promise { font-size: clamp(28px, 5vw, 44px); line-height: 1.15; font-weight: 700; margin: 0; max-width: 20ch; }
+  #run { font: inherit; font-size: 22px; font-weight: 700; padding: 20px 48px; border: 0; border-radius: 14px;
+         background: var(--accent); color: var(--on-accent); cursor: pointer; min-width: 280px; }
+  #run:disabled { opacity: .6; cursor: progress; }
+  #run:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); counter-reset: step; }
+  .steps li { counter-increment: step; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .steps li::before { content: counter(step); display: block; font-weight: 700; color: var(--muted); }
+  .steps li.ai { border: 2px solid var(--accent); }
+  .badge { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--on-accent); background: var(--accent); border-radius: 999px; padding: 2px 10px; }
+  .result { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 12px; }
+  .result h2 { margin: 0; font-size: 16px; color: var(--muted); }
+  .number { font-size: 48px; font-weight: 700; line-height: 1; }
+  .number small { display: block; font-size: 14px; font-weight: 400; color: var(--muted); margin-top: 6px; }
+  pre { margin: 0; white-space: pre-wrap; font: 14px/1.5 ui-monospace, monospace; color: var(--muted); }
+  .simulated { font-size: 13px; font-weight: 700; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <p class="promise" id="promise"></p>
+    <button id="run" type="button"></button>
+  </section>
+  <ol class="steps" id="steps" aria-label="How it works"></ol>
+  <section class="result" aria-live="polite">
+    <h2>Result</h2>
+    <div class="number" id="number">–<small id="label"></small></div>
+    <pre id="output">Press the button to run it.</pre>
+    <span class="simulated" id="simulated" hidden>SIMULATED: set CONFIG.runUrl to run the real workflow</span>
+  </section>
+</main>
+<script>
+// CONFIG: every placeholder on the page. Replace each <...>; nothing else needs to change.
+const CONFIG = {
+  title: "<Project name>",
+  promise: "<One line: what the judge gets when they press the button>",
+  button: "<Run it on a real example>",
+  // 3 to 5 steps. Mark the one where the host's AI acts with ai: "<Codex / OpenAI>" (exactly one).
+  steps: [
+    { text: "<What goes in>" },
+    { text: "<What the AI does with it>", ai: "<Codex / OpenAI>" },
+    { text: "<What comes out>" },
+  ],
+  // POST endpoint that runs the main workflow end to end and returns {"output": "...", "number": 42}.
+  // Add it to docs/CONTRACT.md. Empty: the page shows a SIMULATED result so it still demos offline.
+  runUrl: "",
+  runBody: {},  // the example input the button sends
+  numberLabel: "<the one key number, e.g. 'minutes saved'>",
+};
+
+const $ = (id) => document.getElementById(id);
+document.title = CONFIG.title;
+$("promise").textContent = CONFIG.promise;
+$("run").textContent = CONFIG.button;
+$("label").textContent = CONFIG.numberLabel;
+for (const step of CONFIG.steps) {
+  const li = document.createElement("li");
+  li.textContent = step.text;
+  if (step.ai) {
+    li.className = "ai";
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = step.ai;
+    li.append(document.createElement("br"), badge);
+  }
+  $("steps").append(li);
+}
+
+$("run").addEventListener("click", async () => {
+  const button = $("run"), label = button.textContent;
+  button.disabled = true;
+  button.textContent = "Running…";
+  $("output").textContent = "";
+  try {
+    let result;
+    if (CONFIG.runUrl) {
+      const response = await fetch(CONFIG.runUrl, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(CONFIG.runBody),
+      });
+      if (!response.ok) throw new Error(`${response.status} ${await response.text()}`);
+      result = await response.json();
+    } else {
+      await new Promise((done) => setTimeout(done, 800));
+      result = { output: "<the workflow's output appears here>", number: 42 };
+    }
+    $("simulated").hidden = Boolean(CONFIG.runUrl);
+    $("number").firstChild.textContent = result.number ?? "–";
+    $("output").textContent = typeof result.output === "string" ? result.output : JSON.stringify(result.output, null, 2);
+  } catch (error) {
+    $("number").firstChild.textContent = "–";
+    $("output").textContent = `The run failed: ${error.message}. Press the button to try again.`;
+  } finally {
+    button.disabled = false;
+    button.textContent = label;
+  }
+});
+</script>
+</body>
+</html>
